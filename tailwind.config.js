@@ -25,7 +25,10 @@ module.exports = {
           bg: {
             gray: "#F5F5F5"
           }
-        }
+        },
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        border: "hsl(var(--border))",
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
