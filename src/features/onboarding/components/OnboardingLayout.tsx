@@ -15,28 +15,26 @@ export const OnboardingLayout = ({
 }: OnboardingLayoutProps) => {
   return (
     <div className="min-h-screen bg-white">
-      <header className="py-6 border-b">
-        <div className="container max-w-7xl">
+      <header className="py-4 px-6 md:px-8 border-b">
+        <div className="max-w-7xl mx-auto">
           <Link to="/" className="text-2xl font-bold text-primary">THEMISON</Link>
         </div>
       </header>
       
-      <main className="container max-w-7xl py-12">
-        <div className="flex flex-col space-y-12">
-          <div className="flex flex-col max-w-2xl">
-            <div className="mb-2">
-              <p className="text-themison-gray">Step {currentStep} of {totalSteps}</p>
-            </div>
-            
-            <div className="h-1 w-full bg-gray-200 rounded-full mb-6">
-              <div 
-                className="h-1 bg-primary rounded-full"
-                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-              ></div>
-            </div>
-            
-            {children}
+      <main className="max-w-7xl mx-auto px-6 md:px-8 py-8 md:py-12">
+        <div className="max-w-2xl">
+          <div className="mb-4">
+            <p className="text-themison-gray">Step {currentStep} of {totalSteps}</p>
           </div>
+          
+          <div className="h-1 w-full bg-gray-200 rounded-full mb-8">
+            <div 
+              className="h-1 bg-primary rounded-full"
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            ></div>
+          </div>
+          
+          {children}
         </div>
       </main>
     </div>

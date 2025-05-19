@@ -45,7 +45,7 @@ const RegisterForm = () => {
     } else if (strength >= 4) {
       setValidationClass('border-themison-success ring-1 ring-themison-success');
     } else if (strength > 0) {
-      setValidationClass('border-destructive ring-1 ring-destructive');
+      setValidationClass('border-red-500 ring-1 ring-red-500');
     }
   }, [password]);
 
@@ -72,13 +72,13 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-md px-6">
+    <div className="min-h-screen flex items-center justify-center bg-white px-6">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold uppercase tracking-wider text-primary">Themison</h1>
         </div>
         
-        <h2 className="text-xl font-semibold text-center mb-6">Create an account</h2>
+        <h2 className="text-xl font-semibold text-center mb-8">Create an account</h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
