@@ -1,11 +1,29 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="max-w-4xl px-4 py-8 text-center">
+        <h1 className="text-4xl font-bold tracking-wider mb-4 text-primary uppercase">Themison</h1>
+        <p className="text-xl text-themison-gray mb-8">Modern clinical trial document assistant platform</p>
+        
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+          <Link 
+            to="/login" 
+            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded transition-colors font-medium"
+          >
+            Sign in
+          </Link>
+          <Link 
+            to="/register" 
+            className="flex items-center justify-center border border-primary text-primary hover:bg-gray-50 px-6 py-3 rounded transition-colors font-medium"
+          >
+            Create an account
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </div>
   );
