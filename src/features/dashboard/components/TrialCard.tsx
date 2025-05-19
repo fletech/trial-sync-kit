@@ -17,6 +17,7 @@ interface TrialCardProps {
   trial: Trial;
 }
 
+// NOTE: This component is no longer used in the Dashboard but kept for reference
 export const TrialCard = ({ trial }: TrialCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {

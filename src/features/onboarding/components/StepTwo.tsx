@@ -47,7 +47,7 @@ export const StepTwo = () => {
   };
 
   return (
-    <OnboardingLayout currentStep={2}>
+    <OnboardingLayout currentStep={2} previousStep="/onboarding/step1">
       <div className="space-y-8">
         <h2 className="text-2xl font-semibold">Create a Study/Trial</h2>
         

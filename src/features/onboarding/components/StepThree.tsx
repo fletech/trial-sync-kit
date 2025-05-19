@@ -65,7 +65,7 @@ export const StepThree = () => {
   };
 
   return (
-    <OnboardingLayout currentStep={3}>
+    <OnboardingLayout currentStep={3} previousStep="/onboarding/step2">
       <section>
         <h2 className="text-2xl font-semibold mb-1">Add Team Members</h2>
         
