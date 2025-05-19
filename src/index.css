@@ -109,7 +109,7 @@
 }
 
 .themison-input-invalid {
-  @apply border-destructive ring-1 ring-destructive;
+  @apply border-red-500 ring-1 ring-red-500;
 }
 
 .themison-checkbox {
