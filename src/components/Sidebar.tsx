@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   FileText, 
@@ -15,6 +15,9 @@ import {
   ChevronRight,
   X
 } from 'lucide-react';
+import { getUser, logout } from '@/services/userService';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 
 interface NavItemProps {
   to: string;
@@ -44,11 +47,36 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ open, onToggle }: SidebarProps) => {
-  const [user] = useState({
-    name: 'Terry Dorwart',
-    role: 'Admin',
-    avatar: '/placeholder.svg'
+  const [userData, setUserData] = useState({
+    name: 'Guest User',
+    role: 'Guest',
+    avatar: '/placeholder.svg',
+    email: ''
   });
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    // Get user data from localStorage
+    const user = getUser();
+    if (user) {
+      setUserData({
+        name: user.name || userData.name,
+        role: user.role || userData.role,
+        avatar: user.avatar || userData.avatar,
+        email: user.email || userData.email
+      });
+    }
+  }, []);
+  
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out successfully",
+    });
+    navigate('/login');
+  };
   
   return (
     <>
@@ -107,22 +135,32 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
             <nav className="space-y-1">
               <NavItem to="/help" icon={<HelpCircle className="h-5 w-5" />} label={open ? "Help" : ""} />
               <NavItem to="/settings" icon={<Settings className="h-5 w-5" />} label={open ? "Settings" : ""} />
-              <NavItem to="/logout" icon={<LogOut className="h-5 w-5" />} label={open ? "Log out" : ""} />
+              <button 
+                onClick={handleLogout}
+                className={`
+                  flex items-center px-4 py-3 text-sm font-medium rounded-md w-full text-left
+                  text-themison-gray hover:bg-gray-100
+                `}
+              >
+                <span className="mr-3"><LogOut className="h-5 w-5" /></span>
+                {open && <span>Log out</span>}
+              </button>
             </nav>
           </div>
           
           {/* User Profile */}
           <div className="p-4 border-t">
             <div className="flex items-center">
-              <img 
-                src={user.avatar} 
-                alt={user.name}
-                className="h-8 w-8 rounded-full mr-3"
-              />
+              <Avatar className="h-8 w-8 mr-3">
+                <AvatarImage src={userData.avatar} alt={userData.name} />
+                <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
+              </Avatar>
               {open && (
                 <div>
-                  <p className="text-sm font-medium">{user.name}</p>
-                  <p className="text-xs text-themison-gray">{user.role}</p>
+                  <p className="text-sm font-medium">{userData.name}</p>
+                  <p className="text-xs text-themison-gray">
+                    {userData.email || userData.role}
+                  </p>
                 </div>
               )}
             </div>

@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { login, isOnboardingCompleted } from '@/services/userService';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -10,16 +11,23 @@ const LoginForm = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real implementation, we would integrate with Supabase auth here
+    
+    // In a real implementation, we would validate credentials with a backend
+    // For now, we'll simulate a successful login
+    login(email, rememberMe);
+    
     toast({
       title: "Login successful",
-      description: "Redirecting to dashboard...",
+      description: "Redirecting...",
     });
-    // Navigate to onboarding if first login, otherwise to dashboard
-    window.location.href = '/onboarding/step1';
+    
+    // Navigate to onboarding if not completed, otherwise to dashboard
+    const redirectPath = isOnboardingCompleted() ? '/dashboard' : '/onboarding/step1';
+    navigate(redirectPath);
   };
 
   return (

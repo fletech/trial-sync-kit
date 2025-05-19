@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { isUserLoggedIn, isOnboardingCompleted } from "@/services/userService";
 
 // Pages
 import Index from "./pages/Index";
@@ -25,6 +26,33 @@ import OnboardingComplete from "./features/onboarding/components/OnboardingCompl
 import { Dashboard } from "./features/dashboard/components/Dashboard";
 
 const queryClient = new QueryClient();
+
+// A protected route wrapper component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isLoggedIn = isUserLoggedIn();
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// A route that checks if onboarding is completed
+const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
+  const onboardingComplete = isOnboardingCompleted();
+  const isLoggedIn = isUserLoggedIn();
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (!onboardingComplete) {
+    return <Navigate to="/onboarding/step1" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -49,14 +77,34 @@ const App = () => (
             />
           } />
           
-          {/* Onboarding Routes */}
-          <Route path="/onboarding/step1" element={<StepOne />} />
-          <Route path="/onboarding/step2" element={<StepTwo />} />
-          <Route path="/onboarding/step3" element={<StepThree />} />
-          <Route path="/onboarding/complete" element={<OnboardingComplete />} />
+          {/* Onboarding Routes - protected by login */}
+          <Route path="/onboarding/step1" element={
+            <ProtectedRoute>
+              <StepOne />
+            </ProtectedRoute>
+          } />
+          <Route path="/onboarding/step2" element={
+            <ProtectedRoute>
+              <StepTwo />
+            </ProtectedRoute>
+          } />
+          <Route path="/onboarding/step3" element={
+            <ProtectedRoute>
+              <StepThree />
+            </ProtectedRoute>
+          } />
+          <Route path="/onboarding/complete" element={
+            <ProtectedRoute>
+              <OnboardingComplete />
+            </ProtectedRoute>
+          } />
           
-          {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Dashboard Routes - protected by login and completed onboarding */}
+          <Route path="/dashboard" element={
+            <OnboardingCheck>
+              <Dashboard />
+            </OnboardingCheck>
+          } />
           
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />

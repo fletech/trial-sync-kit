@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingLayout } from './OnboardingLayout';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronDown } from 'lucide-react';
+import { updateOnboardingStep } from '@/services/userService';
 
 const roles = [
   "Principal investigator",
@@ -17,6 +18,17 @@ export const StepOne = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Load saved role if available
+  useEffect(() => {
+    const savedStatus = localStorage.getItem('themison_onboarding');
+    if (savedStatus) {
+      const { role: savedRole } = JSON.parse(savedStatus);
+      if (savedRole) {
+        setRole(savedRole);
+      }
+    }
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -29,8 +41,8 @@ export const StepOne = () => {
       return;
     }
     
-    // In a real app, we would store this in context or a global state
-    localStorage.setItem('onboarding_role', role);
+    // Save to localStorage using our service
+    updateOnboardingStep(1, role);
     
     // Navigate to next step
     navigate('/onboarding/step2');

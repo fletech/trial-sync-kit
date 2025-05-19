@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingLayout } from './OnboardingLayout';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronDown } from 'lucide-react';
+import { updateOnboardingStep, getOnboardingStatus } from '@/services/userService';
 
 const phases = [
   "Phase 1",
@@ -22,6 +23,18 @@ export const StepTwo = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Load saved study data if available
+  useEffect(() => {
+    const onboardingStatus = getOnboardingStatus();
+    if (onboardingStatus?.studyInfo) {
+      const { name, location: loc, sponsor, phase: ph } = onboardingStatus.studyInfo;
+      setStudyName(name || "");
+      setLocation(loc || "");
+      setSponsorName(sponsor || "");
+      setPhase(ph || "");
+    }
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -34,13 +47,13 @@ export const StepTwo = () => {
       return;
     }
     
-    // In a real app, we would store this in context or a global state
-    localStorage.setItem('onboarding_study', JSON.stringify({
+    // Save to localStorage using our service
+    updateOnboardingStep(2, {
       name: studyName,
       location,
       sponsor: sponsorName,
       phase
-    }));
+    });
     
     // Navigate to next step
     navigate('/onboarding/step3');

@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingLayout } from './OnboardingLayout';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, X } from 'lucide-react';
+import { updateOnboardingStep, getOnboardingStatus } from '@/services/userService';
 
 interface TeamMember {
   email: string;
@@ -20,8 +21,15 @@ export const StepThree = () => {
   const { toast } = useToast();
 
   // Get study name from localStorage if available
-  const studyData = localStorage.getItem('onboarding_study');
-  const studyName = studyData ? JSON.parse(studyData).name : 'your study';
+  const onboardingStatus = getOnboardingStatus();
+  const studyName = onboardingStatus?.studyInfo?.name || 'your study';
+
+  // Load saved team members if available
+  useEffect(() => {
+    if (onboardingStatus?.team && onboardingStatus.team.length > 0) {
+      setMembers(onboardingStatus.team);
+    }
+  }, []);
 
   const addMember = () => {
     setMembers([...members, { email: '', role: 'Member' }]);
@@ -45,20 +53,16 @@ export const StepThree = () => {
     // Validate emails
     const validMembers = members.filter(m => m.email.trim() !== '');
     
-    if (validMembers.length === 0) {
-      toast({
-        title: "No team members added",
-        description: "You can continue without adding team members, or add at least one valid email",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Mark onboarding as completed
+    updateOnboardingStep(3, validMembers);
     
     // In a real app, we would send invitations via an API
-    toast({
-      title: "Team members invited",
-      description: `Invitations sent to ${validMembers.length} team members`,
-    });
+    if (validMembers.length > 0) {
+      toast({
+        title: "Team members invited",
+        description: `Invitations sent to ${validMembers.length} team members`,
+      });
+    }
     
     // Navigate to dashboard
     navigate('/dashboard');
