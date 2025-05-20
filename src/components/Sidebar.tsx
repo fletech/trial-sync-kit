@@ -31,7 +31,7 @@ const NavItem = ({ to, icon, label }: NavItemProps) => (
     className={({ isActive }) => `
       flex items-center px-4 py-3 text-sm font-medium rounded-md
       ${isActive 
-        ? 'bg-primary text-white' 
+        ? 'bg-[#E9ECEF] text-themison-text' 
         : 'text-themison-gray hover:bg-gray-100'
       }
     `}

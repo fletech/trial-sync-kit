@@ -3,6 +3,8 @@ import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Plus, Search, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { Button } from '@/components/ui/button';
+
 interface Trial {
   id: number;
   name: string;
@@ -14,8 +16,10 @@ interface Trial {
   pendingTask: string;
   phase: string;
 }
+
 const phases = ["All phases", "Study start-up", "Recruitment", "Pre-screening visit", "Screening visit", "Randomization visit", "Routine visit", "Termination visit"];
 const locations = ["All places", "Castellanza", "Bergamo", "Torino", "Milano", "Catania"];
+
 export const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activePhase, setActivePhase] = useState('All phases');
@@ -71,15 +75,18 @@ export const Dashboard = () => {
     const matchesLocation = activeLocation === 'All places' || trial.location === activeLocation;
     return matchesSearch && matchesPhase && matchesLocation;
   });
+  
   const breadcrumbItems = [{
     name: 'Home',
     href: '/'
   }, {
     name: 'Trials'
   }];
+  
   const clearSearch = () => {
     setSearchQuery('');
   };
+  
   return <DashboardLayout>
       <div className="mb-6">
         <Breadcrumbs items={breadcrumbItems} />
@@ -90,58 +97,98 @@ export const Dashboard = () => {
           <h1 className="text-2xl font-semibold">Trials</h1>
           <p className="text-themison-gray">{filteredTrials.length} Active Studies</p>
         </div>
+      </div>
+      
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
+        <div className="relative w-full md:max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input 
+            type="text" 
+            placeholder="Search Your Study Here" 
+            value={searchQuery} 
+            onChange={e => setSearchQuery(e.target.value)} 
+            className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" 
+          />
+          {searchQuery && (
+            <button 
+              onClick={clearSearch} 
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+            </button>
+          )}
+        </div>
         
-        <div className="mt-4 md:mt-0">
-          <Link to="/trials/new" className="flex items-center bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded transition-colors">
+        <div className="w-full md:w-auto">
+          <Link to="/trials/new" className="flex items-center justify-center bg-[#10121C] hover:bg-[#10121C]/90 text-white px-6 py-3 rounded transition-colors w-full md:w-auto">
             <Plus className="h-5 w-5 mr-2" />
             Create trial
           </Link>
         </div>
       </div>
       
-      <div className="relative mb-6 max-w-lg">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
-        </div>
-        <input type="text" placeholder="Search Your Study Here" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
-        {searchQuery && <button onClick={clearSearch} className="absolute inset-y-0 right-0 pr-3 flex items-center">
-            <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-          </button>}
-      </div>
-      
       <div className="mb-6">
         <div className="mb-3">
           <p className="text-sm font-medium text-themison-gray mb-2">Phases</p>
           <div className="flex flex-wrap gap-2">
-            {phases.map(phase => <button key={phase} className={`px-4 py-2 text-sm rounded-md transition-colors ${activePhase === phase ? 'bg-primary text-white' : 'bg-gray-200 text-themison-text hover:bg-gray-300'}`} onClick={() => setActivePhase(phase)}>
+            {phases.map(phase => (
+              <button 
+                key={phase} 
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  activePhase === phase 
+                    ? 'bg-[#6C757D] text-white' 
+                    : 'bg-gray-200 text-themison-text hover:bg-gray-300'
+                }`} 
+                onClick={() => setActivePhase(phase)}
+              >
                 {phase}
-              </button>)}
+              </button>
+            ))}
           </div>
         </div>
         
         <div>
           <p className="text-sm font-medium text-themison-gray mb-2">Locations</p>
           <div className="flex flex-wrap gap-2">
-            {locations.map(location => <button key={location} className={`px-4 py-2 text-sm rounded-md transition-colors ${activeLocation === location ? 'bg-primary text-white' : 'bg-gray-200 text-themison-text hover:bg-gray-300'}`} onClick={() => setActiveLocation(location)}>
+            {locations.map(location => (
+              <button 
+                key={location} 
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  activeLocation === location 
+                    ? 'bg-[#6C757D] text-white' 
+                    : 'bg-gray-200 text-themison-text hover:bg-gray-300'
+                }`} 
+                onClick={() => setActiveLocation(location)}
+              >
                 {location}
-              </button>)}
+              </button>
+            ))}
           </div>
         </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredTrials.map(trial => <Link to={`/trials/${trial.id}`} key={trial.id} className="block bg-white rounded-lg overflow-hidden border shadow-sm transition-all hover:shadow-md">
+        {filteredTrials.map(trial => (
+          <Link to={`/trials/${trial.id}`} key={trial.id} className="block bg-white rounded-lg overflow-hidden border shadow-sm transition-all hover:shadow-md">
             <div className="relative h-40 bg-gradient-to-br from-blue-100 to-blue-50">
               <div className="absolute top-3 left-3">
-                {trial.status === 'recruiting' && <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {trial.status === 'recruiting' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Recruiting
-                  </span>}
-                {trial.status === 'randomization' && <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  </span>
+                )}
+                {trial.status === 'randomization' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                     Randomization
-                  </span>}
-                {trial.status === 'active' && <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  </span>
+                )}
+                {trial.status === 'active' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Visit {trial.id}
-                  </span>}
+                  </span>
+                )}
               </div>
               <div className="absolute top-3 right-3">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-themison-text">
@@ -160,9 +207,12 @@ export const Dashboard = () => {
                   <span>Close-out</span>
                 </div>
                 <div className="h-1 bg-gray-200 rounded-full">
-                  <div className="h-1 bg-primary rounded-full" style={{
-                width: trial.progress === 'start' ? '10%' : trial.progress === 'routine-visits' ? '50%' : trial.progress === 'mid-trial' ? '65%' : '20%'
-              }} />
+                  <div 
+                    className="h-1 bg-primary rounded-full" 
+                    style={{
+                      width: trial.progress === 'start' ? '10%' : trial.progress === 'routine-visits' ? '50%' : trial.progress === 'mid-trial' ? '65%' : '20%'
+                    }} 
+                  />
                 </div>
               </div>
               
@@ -187,7 +237,8 @@ export const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </Link>)}
+          </Link>
+        ))}
       </div>
     </DashboardLayout>;
 };
