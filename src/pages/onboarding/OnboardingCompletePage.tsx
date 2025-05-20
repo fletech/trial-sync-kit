@@ -1,10 +1,9 @@
+import { Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import { Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
-const OnboardingComplete = () => {
+export const OnboardingCompletePage = () => {
   const navigate = useNavigate();
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md text-center">
@@ -13,12 +12,14 @@ const OnboardingComplete = () => {
             <Check className="h-12 w-12 text-themison-success" />
           </div>
         </div>
-        
+
         <h1 className="text-2xl font-semibold mb-4">Onboarding complete</h1>
-        <p className="text-themison-gray mb-8">Now you can start managing your studies</p>
-        
-        <button 
-          onClick={() => navigate('/dashboard')}
+        <p className="text-themison-gray mb-8">
+          Now you can start managing your studies
+        </p>
+
+        <button
+          onClick={() => navigate("/dashboard")}
           className="themison-button"
         >
           Go to dashboard
@@ -27,5 +28,3 @@ const OnboardingComplete = () => {
     </div>
   );
 };
-
-export default OnboardingComplete;

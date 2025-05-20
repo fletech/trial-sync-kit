@@ -1,14 +1,17 @@
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import {
+  login,
+  isUserLoggedIn,
+  isOnboardingCompleted,
+} from "@/services/userService";
+import { FormField } from "@/components/ui/form-field";
+import { AuthLayout } from "@/features/auth/components/AuthLayout";
 
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { login, isUserLoggedIn, isOnboardingCompleted } from '@/services/userService';
-import { FormField } from '@/components/ui/form-field';
-import { AuthLayout } from './AuthLayout';
-
-const LoginForm = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -16,25 +19,29 @@ const LoginForm = () => {
   // Check on component mount if user is already logged in
   useEffect(() => {
     if (isUserLoggedIn()) {
-      const redirectTo = isOnboardingCompleted() ? '/dashboard' : '/onboarding/step1';
+      const redirectTo = isOnboardingCompleted()
+        ? "/dashboard"
+        : "/onboarding/step1";
       navigate(redirectTo, { replace: true });
     }
   }, [navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // In a real implementation, we would validate credentials with a backend
     // For now, we'll simulate a successful login
     login(email, rememberMe);
-    
+
     toast({
       title: "Login successful",
       description: "Redirecting...",
     });
-    
+
     // Navigate to onboarding if not completed, otherwise to dashboard
-    const redirectPath = isOnboardingCompleted() ? '/dashboard' : '/onboarding/step1';
+    const redirectPath = isOnboardingCompleted()
+      ? "/dashboard"
+      : "/onboarding/step1";
     navigate(redirectPath);
   };
 
@@ -50,7 +57,7 @@ const LoginForm = () => {
           placeholder="name@email.com"
           required
         />
-        
+
         <FormField
           id="password"
           label="Password"
@@ -60,7 +67,7 @@ const LoginForm = () => {
           placeholder="••••••••••••••••"
           required
         />
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <input
@@ -75,21 +82,27 @@ const LoginForm = () => {
             </label>
           </div>
           <div className="text-sm">
-            <Link to="/reset-password" className="text-primary hover:text-primary-hover">
+            <Link
+              to="/reset-password"
+              className="text-primary hover:text-primary-hover"
+            >
               Forgot password
             </Link>
           </div>
         </div>
-        
-        <button 
-          type="submit" 
+
+        <button
+          type="submit"
           className="w-full bg-primary hover:bg-primary-hover focus:bg-primary-selected text-white px-4 py-3 rounded transition-colors font-medium"
         >
           Continue
         </button>
-        
+
         <div className="text-center mt-4">
-          <Link to="/register" className="text-primary hover:text-primary-hover text-sm">
+          <Link
+            to="/register"
+            className="text-primary hover:text-primary-hover text-sm"
+          >
             Don't have an account? Sign up
           </Link>
         </div>
@@ -98,4 +111,4 @@ const LoginForm = () => {
   );
 };
 
-export { LoginForm };
+export { LoginPage };
