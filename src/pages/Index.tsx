@@ -1,8 +1,18 @@
 
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { isUserLoggedIn, isOnboardingCompleted } from '@/services/userService';
 
 const Index = () => {
+  // Check if user is already logged in
+  const isLoggedIn = isUserLoggedIn();
+  
+  // If logged in, redirect to dashboard or onboarding based on completion status
+  if (isLoggedIn) {
+    const redirectTo = isOnboardingCompleted() ? '/dashboard' : '/onboarding/step1';
+    return <Navigate to={redirectTo} replace />;
+  }
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="max-w-4xl px-4 py-8 text-center">

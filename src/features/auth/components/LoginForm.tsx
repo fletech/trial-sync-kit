@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { login, isOnboardingCompleted } from '@/services/userService';
+import { login, isUserLoggedIn, isOnboardingCompleted } from '@/services/userService';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +12,14 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Check on component mount if user is already logged in
+  useEffect(() => {
+    if (isUserLoggedIn()) {
+      const redirectTo = isOnboardingCompleted() ? '/dashboard' : '/onboarding/step1';
+      navigate(redirectTo, { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
