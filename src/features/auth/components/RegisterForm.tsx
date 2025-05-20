@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff, Check, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { FormField } from '@/components/ui/form-field';
 
 const RegisterForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   // Password validation states
@@ -81,110 +81,92 @@ const RegisterForm = () => {
         <h2 className="text-xl font-semibold text-center mb-8">Create an account</h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@email.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            />
-          </div>
+          <FormField
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@email.com"
+            required
+          />
           
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••••••"
-                className={`w-full px-4 py-3 border rounded focus:outline-none pr-10 ${validationClass}`}
-                required
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-            </div>
-            
-            {password.length > 0 && (
-              <div className="mt-3">
-                {passwordStrength > 0 && (
-                  <div className="mb-2">
-                    <div className="text-xs text-themison-gray flex justify-between">
-                      <span>{passwordStrength < 3 ? 'Weak' : passwordStrength < 5 ? 'Strong' : 'Very Strong'}</span>
-                    </div>
-                    <div className="h-1 w-full bg-gray-200 rounded-full mt-1">
-                      <div 
-                        className="h-1 bg-primary rounded-full transition-all duration-300" 
-                        style={{ width: `${passwordStrength * 20}%` }}
-                      ></div>
-                    </div>
+          <FormField
+            id="password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••••••••••"
+            validationClass={validationClass}
+            required
+          />
+          
+          {password.length > 0 && (
+            <div className="mt-3">
+              {passwordStrength > 0 && (
+                <div className="mb-2">
+                  <div className="text-xs text-themison-gray flex justify-between">
+                    <span>{passwordStrength < 3 ? 'Weak' : passwordStrength < 5 ? 'Strong' : 'Very Strong'}</span>
                   </div>
-                )}
-                
-                <ul className="space-y-1 text-sm mt-2">
-                  <li className="flex items-center">
-                    {validations.length ? 
-                      <Check className="h-4 w-4 text-themison-success mr-2" /> : 
-                      <X className="h-4 w-4 text-destructive mr-2" />
-                    }
-                    <span className={validations.length ? "text-themison-success" : "text-destructive"}>
-                      Between 8 and 64 characters
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    {validations.uppercase ? 
-                      <Check className="h-4 w-4 text-themison-success mr-2" /> : 
-                      <X className="h-4 w-4 text-destructive mr-2" />
-                    }
-                    <span className={validations.uppercase ? "text-themison-success" : "text-destructive"}>
-                      At least one uppercase letter
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    {validations.lowercase ? 
-                      <Check className="h-4 w-4 text-themison-success mr-2" /> : 
-                      <X className="h-4 w-4 text-destructive mr-2" />
-                    }
-                    <span className={validations.lowercase ? "text-themison-success" : "text-destructive"}>
-                      At least one lowercase letter
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    {validations.number ? 
-                      <Check className="h-4 w-4 text-themison-success mr-2" /> : 
-                      <X className="h-4 w-4 text-destructive mr-2" />
-                    }
-                    <span className={validations.number ? "text-themison-success" : "text-destructive"}>
-                      At least one number
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    {validations.special ? 
-                      <Check className="h-4 w-4 text-themison-success mr-2" /> : 
-                      <X className="h-4 w-4 text-destructive mr-2" />
-                    }
-                    <span className={validations.special ? "text-themison-success" : "text-destructive"}>
-                      At least one special character
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
+                  <div className="h-1 w-full bg-gray-200 rounded-full mt-1">
+                    <div 
+                      className="h-1 bg-primary rounded-full transition-all duration-300" 
+                      style={{ width: `${passwordStrength * 20}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+              
+              <ul className="space-y-1 text-sm mt-2">
+                <li className="flex items-center">
+                  {validations.length ? 
+                    <Check className="h-4 w-4 text-themison-success mr-2" /> : 
+                    <X className="h-4 w-4 text-destructive mr-2" />
+                  }
+                  <span className={validations.length ? "text-themison-success" : "text-destructive"}>
+                    Between 8 and 64 characters
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  {validations.uppercase ? 
+                    <Check className="h-4 w-4 text-themison-success mr-2" /> : 
+                    <X className="h-4 w-4 text-destructive mr-2" />
+                  }
+                  <span className={validations.uppercase ? "text-themison-success" : "text-destructive"}>
+                    At least one uppercase letter
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  {validations.lowercase ? 
+                    <Check className="h-4 w-4 text-themison-success mr-2" /> : 
+                    <X className="h-4 w-4 text-destructive mr-2" />
+                  }
+                  <span className={validations.lowercase ? "text-themison-success" : "text-destructive"}>
+                    At least one lowercase letter
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  {validations.number ? 
+                    <Check className="h-4 w-4 text-themison-success mr-2" /> : 
+                    <X className="h-4 w-4 text-destructive mr-2" />
+                  }
+                  <span className={validations.number ? "text-themison-success" : "text-destructive"}>
+                    At least one number
+                  </span>
+                </li>
+                <li className="flex items-center">
+                  {validations.special ? 
+                    <Check className="h-4 w-4 text-themison-success mr-2" /> : 
+                    <X className="h-4 w-4 text-destructive mr-2" />
+                  }
+                  <span className={validations.special ? "text-themison-success" : "text-destructive"}>
+                    At least one special character
+                  </span>
+                </li>
+              </ul>
+            </div>
+          )}
           
           <div className="flex items-center">
             <input
