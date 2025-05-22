@@ -6,14 +6,13 @@ interface KanbanColumnProps {
   column: any;
   tasks: any[];
   isActive?: boolean;
-  activeTaskId?: string;
+  placeholderIdx?: number;
 }
 
 export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   column,
   tasks,
   isActive = false,
-  activeTaskId,
 }) => {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
@@ -41,11 +40,13 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       </div>
       <div className="flex flex-col gap-4">
         {tasks.map((task) =>
-          task.id === activeTaskId ? (
+          task.isPlaceholder ? (
             <div
-              key={task.id}
-              className="h-[110px] bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg opacity-70"
-            />
+              key="placeholder"
+              className="h-[72px] bg-gray-100 border-2 border-dashed border-primary/40 rounded-lg flex items-center justify-center text-xs text-primary/60 font-semibold opacity-80"
+            >
+              Drop here
+            </div>
           ) : (
             <KanbanTaskCard key={task.id} task={task} />
           )

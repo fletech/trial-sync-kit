@@ -7,6 +7,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { KanbanTaskCard } from "./KanbanTaskCard";
+import { PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 
 interface KanbanBoardProps {
   columns: any[];
@@ -24,12 +25,19 @@ function groupTasksByColumn(tasks, columns) {
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({ columns, tasks }) => {
-  // Estado: tareas agrupadas por columna
   const [columnTasks, setColumnTasks] = useState(() =>
     groupTasksByColumn(tasks, columns)
   );
-  const [activeTask, setActiveTask] = useState<any | null>(null);
-  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [overColId, setOverColId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Solo activa drag si el mouse se mueve al menos 8px
+      },
+    })
+  );
 
   // Encuentra la tarea activa por id
   const getActiveTask = (id: string) => {
@@ -40,30 +48,99 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ columns, tasks }) => {
     return null;
   };
 
+  // Virtualización: solo filtra la card original y muestra el placeholder si hay drag activo
+  const getVirtualColumnTasks = () => {
+    console.log(
+      "[getVirtualColumnTasks] draggingTaskId:",
+      draggingTaskId,
+      "overColId:",
+      overColId
+    );
+    if (!draggingTaskId || !overColId) {
+      console.log(
+        "[getVirtualColumnTasks] No drag activo, devuelvo columnTasks",
+        columnTasks
+      );
+      return columnTasks;
+    }
+    const tasksByCol = {};
+    for (const col of columns) {
+      let arr = columnTasks[col.id].filter((t) => t.id !== draggingTaskId);
+      if (col.id === overColId) {
+        const task = getActiveTask(draggingTaskId);
+        if (task) {
+          arr = [
+            ...arr,
+            { ...task, id: "__placeholder__", isPlaceholder: true },
+          ];
+        }
+      }
+      tasksByCol[col.id] = arr;
+    }
+    console.log("[getVirtualColumnTasks] tasksByCol:", tasksByCol);
+    return tasksByCol;
+  };
+
+  const virtualColumnTasks = getVirtualColumnTasks();
+
   return (
     <DndContext
+      sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={(event) => {
-        const { active } = event;
-        setActiveTask(getActiveTask(active.id as string));
+        console.log("[onDragStart]", event);
+        setDraggingTaskId(event.active.id as string);
       }}
       onDragOver={(event) => {
-        // Detecta sobre qué columna está el drag
         const { over } = event;
-        if (over && columns.some((col) => col.id === over.id)) {
-          setActiveColumnId(over.id as string);
+        console.log("[onDragOver] over:", over);
+        if (over) {
+          // ¿Es una columna?
+          const col = columns.find((c) => c.id === over.id);
+          if (col) {
+            setOverColId(col.id);
+            console.log("[onDragOver] setOverColId:", col.id);
+          } else {
+            // ¿Es una card?
+            for (const colId in columnTasks) {
+              if (columnTasks[colId].some((t) => t.id === over.id)) {
+                setOverColId(colId);
+                console.log("[onDragOver] setOverColId (card):", colId);
+                break;
+              }
+            }
+          }
         } else {
-          setActiveColumnId(null);
+          setOverColId(null);
+          console.log("[onDragOver] setOverColId: null");
         }
       }}
       onDragEnd={(event) => {
-        setActiveTask(null);
-        setActiveColumnId(null);
+        console.log("[onDragEnd]", event);
         const { active, over } = event;
+        setDraggingTaskId(null);
+        setOverColId(null);
         if (!over) return;
         const activeId = active.id as string;
-        const overId = over.id as string;
-
+        let destColId = null;
+        let destIdx = null;
+        // Si el mouse está sobre una columna, va al final
+        const col = columns.find((c) => c.id === over.id);
+        if (col) {
+          destColId = col.id;
+          destIdx = columnTasks[destColId].length - 1;
+        } else {
+          // Si está sobre una card, busco la columna y el índice de esa card
+          for (const colId in columnTasks) {
+            const idx = columnTasks[colId].findIndex((t) => t.id === over.id);
+            if (idx !== -1) {
+              destColId = colId;
+              destIdx = idx;
+              break;
+            }
+          }
+        }
+        if (!destColId) return;
         // Buscar columna y posición de la card activa
         let sourceColId = null;
         let activeTaskIndex = -1;
@@ -77,90 +154,61 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ columns, tasks }) => {
         }
         if (!sourceColId) return;
 
-        // Si el drop es sobre una columna vacía o al final de la columna
-        if (columns.some((col) => col.id === overId)) {
-          if (sourceColId === overId) return;
-          const taskToMove = columnTasks[sourceColId][activeTaskIndex];
-          setColumnTasks((prev) => {
-            const newSource = prev[sourceColId].filter(
-              (t) => t.id !== activeId
-            );
-            const newDest = [
-              ...prev[overId],
-              { ...taskToMove, columnId: overId },
-            ];
-            return { ...prev, [sourceColId]: newSource, [overId]: newDest };
-          });
+        // NO HACER NADA si no cambió de lugar
+        if (
+          sourceColId === destColId &&
+          (activeTaskIndex === destIdx || destIdx === -1)
+        ) {
           return;
         }
 
-        // Si el drop es sobre otra card (en cualquier columna)
-        let destColId = null;
-        let overTaskIndex = -1;
-        for (const colId in columnTasks) {
-          const idx = columnTasks[colId].findIndex((t) => t.id === overId);
-          if (idx !== -1) {
-            destColId = colId;
-            overTaskIndex = idx;
-            break;
-          }
-        }
-        if (!destColId) return;
-
-        // Si es la misma columna, reordenar
-        if (sourceColId === destColId) {
-          if (activeTaskIndex === overTaskIndex) return;
-          setColumnTasks((prev) => {
-            const newTasks = arrayMove(
-              prev[sourceColId],
-              activeTaskIndex,
-              overTaskIndex
-            );
+        const taskToMove = columnTasks[sourceColId][activeTaskIndex];
+        setColumnTasks((prev) => {
+          if (sourceColId === destColId) {
+            // REORDENAR dentro de la misma columna
+            const oldTasks = prev[sourceColId];
+            const newTasks = arrayMove(oldTasks, activeTaskIndex, destIdx);
             return { ...prev, [sourceColId]: newTasks };
-          });
-        } else {
-          // Si es otra columna, insertar en la posición correcta
-          const taskToMove = columnTasks[sourceColId][activeTaskIndex];
-          setColumnTasks((prev) => {
+          } else {
+            // MOVER entre columnas
             const newSource = prev[sourceColId].filter(
               (t) => t.id !== activeId
             );
             const newDest = [
-              ...prev[destColId].slice(0, overTaskIndex),
+              ...prev[destColId],
               { ...taskToMove, columnId: destColId },
-              ...prev[destColId].slice(overTaskIndex),
             ];
             return { ...prev, [sourceColId]: newSource, [destColId]: newDest };
-          });
-        }
+          }
+        });
       }}
       onDragCancel={() => {
-        setActiveTask(null);
-        setActiveColumnId(null);
+        console.log("[onDragCancel]");
+        setDraggingTaskId(null);
+        setOverColId(null);
       }}
     >
       <div className="flex gap-6 overflow-x-auto w-full">
         {columns.map((column) => (
           <div key={column.id} className="min-w-[340px]">
             <SortableContext
-              items={columnTasks[column.id].map((t) => t.id)}
+              items={virtualColumnTasks[column.id].map((t) => t.id)}
               strategy={verticalListSortingStrategy}
             >
               <KanbanColumn
                 column={column}
-                tasks={columnTasks[column.id]}
-                isActive={activeColumnId === column.id}
-                activeTaskId={
-                  activeTask?.columnId === column.id ? activeTask.id : undefined
-                }
+                tasks={virtualColumnTasks[column.id]}
               />
             </SortableContext>
           </div>
         ))}
       </div>
       <DragOverlay>
-        {activeTask ? (
-          <KanbanTaskCard task={activeTask} isDraggingOverlay />
+        {draggingTaskId ? (
+          <KanbanTaskCard
+            task={getActiveTask(draggingTaskId)}
+            isDraggingOverlay
+          />
         ) : null}
       </DragOverlay>
     </DndContext>

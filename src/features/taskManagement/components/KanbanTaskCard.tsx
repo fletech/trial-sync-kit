@@ -11,8 +11,10 @@ export const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
   task,
   isDraggingOverlay,
 }) => {
-  // Si es el overlay, no usamos useSortable
-  const sortable = !isDraggingOverlay ? useSortable({ id: task.id }) : null;
+  // No usar useSortable para el placeholder
+  const isPlaceholder = task.isPlaceholder;
+  const sortable =
+    !isDraggingOverlay && !isPlaceholder ? useSortable({ id: task.id }) : null;
   const style =
     !isDraggingOverlay && sortable
       ? {
@@ -33,6 +35,8 @@ export const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
           pointerEvents: "none",
         }
       : {};
+
+  if (isPlaceholder) return null;
 
   return (
     <div
