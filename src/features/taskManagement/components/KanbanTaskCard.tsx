@@ -41,20 +41,20 @@ export const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
       {...(sortable ? sortable.listeners : {})}
       style={style as React.CSSProperties}
       className={
-        "bg-white border rounded-xl shadow p-4 cursor-pointer hover:shadow-md transition-all select-none" +
+        "bg-white border border-gray-200 rounded-lg shadow-sm p-3 cursor-pointer hover:shadow transition-all select-none" +
         (sortable?.isDragging || isDraggingOverlay
           ? " ring-2 ring-primary/30"
           : "")
       }
     >
       {/* Aquí irá el contenido de la tarjeta de tarea */}
-      <div className="font-semibold text-sm text-blue-700 mb-1">
+      <div className="font-semibold text-xs text-blue-700 mb-0.5">
         {task.trial}
       </div>
-      <div className="text-xs text-gray-500 mb-2">{task.site}</div>
-      <div className="flex items-center gap-2 mb-2">
+      <div className="text-[11px] text-gray-500 mb-1">{task.site}</div>
+      <div className="flex items-center gap-2 mb-1">
         <span
-          className={`text-xs font-bold px-2 py-0.5 rounded ${
+          className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
             task.priority === "High"
               ? "bg-red-100 text-red-600"
               : task.priority === "Medium"
@@ -64,20 +64,25 @@ export const KanbanTaskCard: React.FC<KanbanTaskCardProps> = ({
         >
           {task.priority}
         </span>
-        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+        <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
           {task.role}
         </span>
       </div>
-      <div className="text-xs text-gray-700 mb-2">{task.owner}</div>
-      <div className="flex items-center gap-4 text-xs text-gray-400 mb-2">
+      <div className="text-[11px] text-gray-700 mb-1">{task.owner}</div>
+      <div className="flex items-center gap-3 text-[10px] text-gray-400 mb-1">
         <span>{task.dates}</span>
       </div>
-      <div className="flex items-center gap-4 text-xs text-gray-400">
+      <div className="flex items-center gap-3 text-[10px] text-gray-400">
         <span>👥 {task.users}</span>
         <span>📄 {task.files}</span>
         <span>💬 {task.comments}</span>
       </div>
-      <button className="mt-3 w-full border border-gray-200 rounded py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 transition">
+      <button
+        className="mt-2 w-full border border-gray-200 rounded py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50 transition"
+        onClick={(e) => e.stopPropagation()}
+        tabIndex={0}
+        type="button"
+      >
         See Details
       </button>
     </div>
