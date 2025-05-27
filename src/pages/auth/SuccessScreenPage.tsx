@@ -1,5 +1,4 @@
-
-import { Check } from 'lucide-react';
+import { Check } from "lucide-react";
 
 interface SuccessScreenProps {
   title: string;
@@ -8,11 +7,11 @@ interface SuccessScreenProps {
   ctaHref: string;
 }
 
-const SuccessScreen = ({ 
+const SuccessScreenPage = ({
   title = "You've created a new account",
   message = "You can now sign in using your new account",
   ctaText = "Sign in with your new account",
-  ctaHref = "/login"
+  ctaHref = "/login",
 }: SuccessScreenProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -22,14 +21,11 @@ const SuccessScreen = ({
             <Check className="h-12 w-12 text-themison-success" />
           </div>
         </div>
-        
+
         <h1 className="text-2xl font-semibold mb-4">{title}</h1>
         <p className="text-themison-gray mb-8">{message}</p>
-        
-        <a 
-          href={ctaHref}
-          className="themison-button inline-block"
-        >
+
+        <a href={ctaHref} className="themison-button inline-block">
           {ctaText}
         </a>
       </div>
@@ -37,4 +33,4 @@ const SuccessScreen = ({
   );
 };
 
-export { SuccessScreen };
+export { SuccessScreenPage };

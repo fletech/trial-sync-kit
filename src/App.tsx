@@ -1,40 +1,47 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isUserLoggedIn, isOnboardingCompleted } from "@/services/userService";
+import storage from "@/services/storage";
+
+import { DevTools } from "@/components/DevTools";
 
 // Pages
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-// Auth Components
-import { LoginForm } from "./features/auth/components/LoginForm";
-import { RegisterForm } from "./features/auth/components/RegisterForm";
-import { PasswordReset } from "./features/auth/components/PasswordReset";
-import { SuccessScreen } from "./features/auth/components/SuccessScreen";
+// Auth Pages
+import { LoginPage } from "./pages/auth/LoginPage";
+import { RegisterPage } from "./pages/auth/RegisterPage";
+import { PasswordResetPage } from "./pages/auth/PasswordResetPage";
+import { SuccessScreenPage } from "./pages/auth/SuccessScreenPage";
 
-// Onboarding Components
-import { StepOne } from "./features/onboarding/components/StepOne";
-import { StepTwo } from "./features/onboarding/components/StepTwo";
-import { StepThree } from "./features/onboarding/components/StepThree";
-import OnboardingComplete from "./features/onboarding/components/OnboardingComplete";
+// Onboarding Pages
+import { StepOnePage } from "./pages/onboarding/StepOnePage";
+import { StepTwoPage } from "./pages/onboarding/StepTwoPage";
+import { StepThreePage } from "./pages/onboarding/StepThreePage";
+import { OnboardingCompletePage } from "./pages/onboarding/OnboardingCompletePage";
 
-// Dashboard Components
-import { Dashboard } from "./features/dashboard/components/Dashboard";
+// Dashboard Pages
+import { DashboardPage } from "./pages/dashboard/DashboardPage";
+import { TaskManagementPage } from "./pages/taskManagement/TaskManagementPage";
+import TrialsPage from "./pages/TrialsPage";
+import OrganizationPage from "./pages/OrganizationPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import IntegrationsPage from "./pages/IntegrationsPage";
 
 const queryClient = new QueryClient();
 
 // A protected route wrapper component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isLoggedIn = isUserLoggedIn();
-  
+
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -42,15 +49,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
   const onboardingComplete = isOnboardingCompleted();
   const isLoggedIn = isUserLoggedIn();
-  
+
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
-  
+
   if (!onboardingComplete) {
     return <Navigate to="/onboarding/step1" replace />;
   }
-  
+
+  // Initialize user data if this is their first time accessing the dashboard
+  if (!storage.isUserInitialized()) {
+    storage.initializeNewUser();
+  }
+
   return <>{children}</>;
 };
 
@@ -59,53 +71,107 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <DevTools />
       <BrowserRouter>
         <Routes>
           {/* Landing Page */}
           <Route path="/" element={<Index />} />
-          
+
           {/* Auth Routes */}
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/register" element={<RegisterForm />} />
-          <Route path="/reset-password" element={<PasswordReset />} />
-          <Route path="/register/success" element={
-            <SuccessScreen 
-              title="You've created a new account"
-              message="You can now sign in using your new account"
-              ctaText="Sign in with your new account"
-              ctaHref="/login"
-            />
-          } />
-          
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/reset-password" element={<PasswordResetPage />} />
+          <Route
+            path="/register/success"
+            element={
+              <SuccessScreenPage
+                title="You've created a new account"
+                message="You can now sign in using your new account"
+                ctaText="Sign in with your new account"
+                ctaHref="/login"
+              />
+            }
+          />
+
           {/* Onboarding Routes - protected by login */}
-          <Route path="/onboarding/step1" element={
-            <ProtectedRoute>
-              <StepOne />
-            </ProtectedRoute>
-          } />
-          <Route path="/onboarding/step2" element={
-            <ProtectedRoute>
-              <StepTwo />
-            </ProtectedRoute>
-          } />
-          <Route path="/onboarding/step3" element={
-            <ProtectedRoute>
-              <StepThree />
-            </ProtectedRoute>
-          } />
-          <Route path="/onboarding/complete" element={
-            <ProtectedRoute>
-              <OnboardingComplete />
-            </ProtectedRoute>
-          } />
-          
+          <Route
+            path="/onboarding/step1"
+            element={
+              <ProtectedRoute>
+                <StepOnePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/onboarding/step2"
+            element={
+              <ProtectedRoute>
+                <StepTwoPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/onboarding/step3"
+            element={
+              <ProtectedRoute>
+                <StepThreePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/onboarding/complete"
+            element={
+              <ProtectedRoute>
+                <OnboardingCompletePage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Dashboard Routes - protected by login and completed onboarding */}
-          <Route path="/dashboard" element={
-            <OnboardingCheck>
-              <Dashboard />
-            </OnboardingCheck>
-          } />
-          
+          <Route
+            path="/dashboard"
+            element={
+              <OnboardingCheck>
+                <DashboardPage />
+              </OnboardingCheck>
+            }
+          />
+          <Route
+            path="/trials"
+            element={
+              <OnboardingCheck>
+                <TrialsPage />
+              </OnboardingCheck>
+            }
+          />
+          <Route
+            path="/organisation"
+            element={
+              <OnboardingCheck>
+                <OrganizationPage />
+              </OnboardingCheck>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <OnboardingCheck>
+                <NotificationsPage />
+              </OnboardingCheck>
+            }
+          />
+          <Route
+            path="/integrations"
+            element={
+              <OnboardingCheck>
+                <IntegrationsPage />
+              </OnboardingCheck>
+            }
+          />
+
+          {/* Task Management Route */}
+          <Route path="/task-manager" element={<TaskManagementPage />} />
+
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>

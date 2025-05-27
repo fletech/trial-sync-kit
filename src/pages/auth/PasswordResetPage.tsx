@@ -1,11 +1,10 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-const PasswordReset = () => {
-  const [email, setEmail] = useState('');
+const PasswordResetPage = () => {
+  const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
 
@@ -23,18 +22,25 @@ const PasswordReset = () => {
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md px-6">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold uppercase tracking-wider text-primary">Themison</h1>
+          <h1 className="text-3xl font-bold uppercase tracking-wider text-primary">
+            Themison
+          </h1>
         </div>
-        
-        <h2 className="text-xl font-semibold text-center mb-2">Reset your password</h2>
+
+        <h2 className="text-xl font-semibold text-center mb-2">
+          Reset your password
+        </h2>
         <p className="text-center text-themison-gray mb-6">
-          Enter your email address and we'll send you a link to reset your password.
+          Enter your email address and we'll send you a link to reset your
+          password.
         </p>
-        
+
         {!submitted ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
@@ -45,16 +51,19 @@ const PasswordReset = () => {
                 required
               />
             </div>
-            
-            <button 
+
+            <button
               type="submit"
               className="w-full bg-primary hover:bg-primary-hover focus:bg-primary-selected text-white px-4 py-3 rounded transition-colors font-medium"
             >
               Send reset link
             </button>
-            
+
             <div className="text-center mt-4">
-              <Link to="/login" className="text-primary hover:text-primary-hover text-sm">
+              <Link
+                to="/login"
+                className="text-primary hover:text-primary-hover text-sm"
+              >
                 Back to login
               </Link>
             </div>
@@ -68,10 +77,7 @@ const PasswordReset = () => {
             <p className="text-themison-gray mb-6">
               We've sent a password reset link to {email}
             </p>
-            <Link 
-              to="/login" 
-              className="text-primary hover:text-primary-hover"
-            >
+            <Link to="/login" className="text-primary hover:text-primary-hover">
               Back to login
             </Link>
           </div>
@@ -81,4 +87,4 @@ const PasswordReset = () => {
   );
 };
 
-export { PasswordReset };
+export { PasswordResetPage };

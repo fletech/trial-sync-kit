@@ -1,0 +1,145 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# PRD: THEMISON Trial Sync Kit - Prototipo MVP
+
+## 🎯 Objetivo
+
+Crear un prototipo interactivo para demostrar la gestión de ensayos clínicos. **Todo en localStorage, sin backend.**
+
+## 📋 Funcionalidades Principales
+
+### 1. Trials (Ya funcionando, prioridad baja)
+
+- **Vista**: Grid de cards como en el diseño
+- **Cada card muestra**: imagen, nombre, fase, estado, ubicación, progreso de visitas
+- **Funcionalidades**:
+  - Filtros por fase/ubicación/estado
+  - Buscador
+  - Botón "Create trial +"
+- **Datos ejemplo**: 8-10 trials mockeados
+
+### 2. Organization (NUEVO- Prioridad Alta)
+
+- **Vista**: Lista de miembros del equipo
+- **Información**: Avatar, nombre, email, rol, estado (Active/Inactive)
+- **Funcionalidades**:
+  - Botón "Invite Members" (abre modal)
+  - Cambiar roles (Admin/Member/Viewer)
+  - Activar/desactivar miembros
+- **Datos ejemplo**: 5-10 miembros
+
+### 3. Notifications (NUEVO- Prioridad Alta)
+
+- **Vista**: Centro de notificaciones
+- **Tipos**: Tareas asignadas, Updates de trials, Menciones
+- **Funcionalidades**:
+  - Marcar como leído/no leído
+  - Badge con contador en sidebar
+  - Filtros por tipo
+- **Datos ejemplo**: 15-20 notificaciones variadas
+
+### 4. Task Manager - Gantt (MEJORA, prioridad baja)
+
+- **Mejorar**:
+  - Barras arrastrables para cambiar fechas
+  - Sincronización con Kanban
+  - Mejor diseño visual
+
+## 💾 Manejo de Datos
+
+### Approach Simplificado
+
+**Usar un service simple para localStorage que después se puede migrar:**
+
+```javascript
+// services/storage.js - UN SOLO SERVICE SIMPLE
+const storage = {
+  // Trials
+  getTrials: () => JSON.parse(localStorage.getItem("trials") || "[]"),
+  saveTrial: (trial) => {
+    const trials = storage.getTrials();
+    trials.push({ ...trial, id: Date.now().toString() });
+    localStorage.setItem("trials", JSON.stringify(trials));
+  },
+
+  // Team
+  getTeamMembers: () => JSON.parse(localStorage.getItem("team") || "[]"),
+  saveTeamMember: (member) => {
+    const team = storage.getTeamMembers();
+    team.push({ ...member, id: Date.now().toString() });
+    localStorage.setItem("team", JSON.stringify(team));
+  },
+
+  // Notifications
+  getNotifications: () =>
+    JSON.parse(localStorage.getItem("notifications") || "[]"),
+  markNotificationAsRead: (id) => {
+    const notifications = storage.getNotifications();
+    const notification = notifications.find((n) => n.id === id);
+    if (notification) notification.read = true;
+    localStorage.setItem("notifications", JSON.stringify(notifications));
+  },
+};
+
+export default storage;
+```
+
+### Estructura de Datos
+
+```javascript
+// Trials
+{
+  id: string,
+  name: string,
+  phase: string,
+  status: string,
+  location: string,
+  sponsor: string,
+  image: string,
+  visits: array
+}
+
+// Team Members
+{
+  id: string,
+  name: string,
+  email: string,
+  role: 'admin' | 'member' | 'viewer',
+  status: 'active' | 'inactive',
+  avatar: string
+}
+
+// Notifications
+{
+  id: string,
+  type: string,
+  title: string,
+  message: string,
+  read: boolean,
+  createdAt: date
+}
+```
+
+## 🎨 Diseño
+
+- **Seguir exactamente los mockups proporcionados**
+- **Colores**: Azul principal (#5B6CFF), estados con colores del diseño
+- **Componentes**: Reutilizar estilos de páginas existentes
+
+## ✅ Criterios de Éxito
+
+- Flujo completo sin errores
+- Datos persisten al recargar
+- Fidelidad visual con diseños
+- Todo es clickeable e interactivo
+
+## 🚫 NO incluir
+
+- Backend real
+- Autenticación compleja
+- Features no mencionadas
+- Over-engineering
