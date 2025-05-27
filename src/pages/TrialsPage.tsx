@@ -14,6 +14,9 @@ import { Link } from "react-router-dom";
 import storage from "@/services/storage";
 import { toast } from "sonner";
 import { notificationEvents } from "@/hooks/useNotifications";
+import { TrialCard } from "@/features/trials/components/TrialCard";
+import { useTrialContext } from "@/contexts/TrialContext";
+import { TrialView } from "@/components/TrialView";
 import {
   Dialog,
   DialogContent,
@@ -33,17 +36,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  PHASE_FILTER_OPTIONS,
+  STATUS_FILTER_OPTIONS,
+  LOCATION_FILTER_OPTIONS,
+  TRIAL_PHASES,
+  TRIAL_STATUSES,
+  TRIAL_LOCATIONS,
+  type TrialPhase,
+  type TrialStatusId,
+  type TrialLocation,
+} from "@/constants/trialConstants";
 
 interface Trial {
   id: string;
   name: string;
   description: string;
-  status: string;
-  location: string;
+  status: TrialStatusId; // Now aligned with Kanban columns
+  location: TrialLocation;
   progress: number; // porcentaje
   upcoming: string;
   pendingTask: string;
-  phase: string;
+  phase: TrialPhase; // Now refers to actual clinical trial phases
   image?: string;
   isNew?: boolean;
   sponsor?: string;
@@ -51,25 +65,6 @@ interface Trial {
   studyStart?: string;
   estimatedCloseOut?: string;
 }
-
-const phases = [
-  "All phases",
-  "Study start-up",
-  "Recruitment",
-  "Screening visit",
-
-  "Routine visit",
-
-  "Close-out",
-];
-const locations = [
-  "All places",
-  "Castellanza",
-  "Bergamo",
-  "Torino",
-  "Milano",
-  "Catania",
-];
 
 const trialImages = [
   "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
@@ -80,17 +75,19 @@ const trialImages = [
 
 export const TrialsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activePhase, setActivePhase] = useState(phases[0]);
-  const [activeLocation, setActiveLocation] = useState(locations[0]);
+  const [activePhase, setActivePhase] = useState(PHASE_FILTER_OPTIONS[0]);
+  const [activeLocation, setActiveLocation] = useState(
+    LOCATION_FILTER_OPTIONS[0]
+  );
   const [trials, setTrials] = useState<Trial[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null);
+  const [currentTrialSection, setCurrentTrialSection] = useState("overview");
   const [newTrial, setNewTrial] = useState({
     name: "",
     description: "",
-    status: "Planning",
-    location: "",
-    phase: "Study start-up",
+    status: "planning" as TrialStatusId,
+    location: "" as TrialLocation,
+    phase: "Phase I" as TrialPhase,
     upcoming: "",
     pendingTask: "",
     sponsor: "",
@@ -98,6 +95,8 @@ export const TrialsPage = () => {
     studyStart: "",
     estimatedCloseOut: "",
   });
+
+  const { selectedTrial, setSelectedTrial, isTrialView } = useTrialContext();
 
   useEffect(() => {
     // Load trials from localStorage only
@@ -136,9 +135,9 @@ export const TrialsPage = () => {
     setNewTrial({
       name: "",
       description: "",
-      status: "Planning",
-      location: "",
-      phase: "Study start-up",
+      status: "planning" as TrialStatusId,
+      location: "Milano" as TrialLocation,
+      phase: "Phase I" as TrialPhase,
       upcoming: "",
       pendingTask: "",
       sponsor: "",
@@ -155,6 +154,11 @@ export const TrialsPage = () => {
     });
   };
 
+  const handleTrialClick = (trial: Trial) => {
+    setSelectedTrial(trial);
+    setCurrentTrialSection("overview");
+  };
+
   const filteredTrials = trials.filter((trial) => {
     const matchesSearch =
       searchQuery === "" ||
@@ -167,14 +171,36 @@ export const TrialsPage = () => {
     return matchesSearch && matchesPhase && matchesLocation;
   });
 
-  // Helper para determinar la etapa actual
+  // Helper para determinar la etapa actual basada en el status del workflow
   function getStage(trial: Trial) {
     if (trial.isNew) return "Start";
-    if (trial.phase === "Routine visit") return "Routine visits";
-    if (trial.phase === "Close-out") return "Close-out";
-    return "Routine visits";
+    if (trial.status === "study") return "Study Conduct";
+    if (trial.status === "completed") return "Completed";
+    return "In Progress";
   }
 
+  // Helper para obtener el nombre del status
+  function getStatusName(statusId: TrialStatusId): string {
+    const status = TRIAL_STATUSES.find((s) => s.id === statusId);
+    return status ? status.name : statusId;
+  }
+
+  // Helper para obtener el color del status
+  function getStatusColor(statusId: TrialStatusId): string {
+    const status = TRIAL_STATUSES.find((s) => s.id === statusId);
+    return status ? status.color : "#6b7280";
+  }
+
+  // If a trial is selected, show the trial view
+  if (isTrialView && selectedTrial) {
+    return (
+      <DashboardLayout>
+        <TrialView currentSection={currentTrialSection} />
+      </DashboardLayout>
+    );
+  }
+
+  // Otherwise, show the trials list
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
@@ -237,7 +263,7 @@ export const TrialsPage = () => {
                     <Label htmlFor="trial-status">Status</Label>
                     <Select
                       value={newTrial.status}
-                      onValueChange={(value) =>
+                      onValueChange={(value: TrialStatusId) =>
                         setNewTrial({ ...newTrial, status: value })
                       }
                     >
@@ -245,13 +271,11 @@ export const TrialsPage = () => {
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="Planning">Planning</SelectItem>
-                        <SelectItem value="Recruiting">Recruiting</SelectItem>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Randomization">
-                          Randomization
-                        </SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
+                        {TRIAL_STATUSES.map((status) => (
+                          <SelectItem key={status.id} value={status.id}>
+                            {status.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -259,7 +283,7 @@ export const TrialsPage = () => {
                     <Label htmlFor="trial-location">Location *</Label>
                     <Select
                       value={newTrial.location}
-                      onValueChange={(value) =>
+                      onValueChange={(value: TrialLocation) =>
                         setNewTrial({ ...newTrial, location: value })
                       }
                     >
@@ -267,11 +291,11 @@ export const TrialsPage = () => {
                         <SelectValue placeholder="Select location" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="Milano">Milano</SelectItem>
-                        <SelectItem value="Bergamo">Bergamo</SelectItem>
-                        <SelectItem value="Torino">Torino</SelectItem>
-                        <SelectItem value="Castellanza">Castellanza</SelectItem>
-                        <SelectItem value="Catania">Catania</SelectItem>
+                        {TRIAL_LOCATIONS.map((location) => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -280,7 +304,7 @@ export const TrialsPage = () => {
                   <Label htmlFor="trial-phase">Phase</Label>
                   <Select
                     value={newTrial.phase}
-                    onValueChange={(value) =>
+                    onValueChange={(value: TrialPhase) =>
                       setNewTrial({ ...newTrial, phase: value })
                     }
                   >
@@ -288,7 +312,7 @@ export const TrialsPage = () => {
                       <SelectValue placeholder="Select phase" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                      {phases.slice(1).map((phase) => (
+                      {TRIAL_PHASES.map((phase) => (
                         <SelectItem key={phase} value={phase}>
                           {phase}
                         </SelectItem>
@@ -337,7 +361,7 @@ export const TrialsPage = () => {
       <div className="flex flex-col gap-2 mb-2">
         <div className="flex items-center gap-2 flex-wrap whitespace-nowrap">
           <span className="text-xs font-medium text-gray-500 mr-2">Phases</span>
-          {phases.map((phase) => (
+          {PHASE_FILTER_OPTIONS.map((phase) => (
             <button
               key={phase}
               className={`text-sm font-medium px-2 py-1 rounded-md transition-colors ${
@@ -360,7 +384,7 @@ export const TrialsPage = () => {
           <span className="text-xs font-medium text-gray-500 mr-2">
             Locations
           </span>
-          {locations.map((location) => (
+          {LOCATION_FILTER_OPTIONS.map((location) => (
             <button
               key={location}
               className={`text-sm font-medium px-2 py-1 rounded-md transition-colors ${
@@ -400,8 +424,8 @@ export const TrialsPage = () => {
                 searchQuery !== "") && (
                 <button
                   onClick={() => {
-                    setActivePhase("All phases");
-                    setActiveLocation("All places");
+                    setActivePhase(PHASE_FILTER_OPTIONS[0]);
+                    setActiveLocation(LOCATION_FILTER_OPTIONS[0]);
                     setSearchQuery("");
                   }}
                   className="px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-md hover:bg-primary/20 transition-colors"
@@ -413,344 +437,15 @@ export const TrialsPage = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
           {filteredTrials.map((trial) => (
-            <div
+            <TrialCard
               key={trial.id}
-              className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col transition hover:shadow-lg cursor-pointer"
-              onClick={() => setSelectedTrial(trial)}
-            >
-              {/* Imagen y badges */}
-              <div
-                className="relative h-36 w-full"
-                style={{ background: "#6C757D" }}
-              >
-                {trial.image ? (
-                  <img
-                    src={trial.image}
-                    alt={trial.name}
-                    className="object-cover w-full h-full"
-                    style={{ minHeight: 144, maxHeight: 144 }}
-                  />
-                ) : (
-                  <div className="w-full h-full" />
-                )}
-                <div className="absolute top-3 left-3 flex gap-2">
-                  {/* Phase badge */}
-                  <span className="px-2 py-0.5 rounded-full text-xs font-normal bg-success-soft text-success">
-                    {trial.phase}
-                  </span>
-                  {/* Location badge */}
-                  <span className="px-2 py-0.5 rounded-full text-xs font-normal bg-surface text-secondary">
-                    {trial.location}
-                  </span>
-                  {/* New trial badge */}
-                  {trial.isNew && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-normal bg-surface text-secondary">
-                      New trial
-                    </span>
-                  )}
-                </div>
-              </div>
-              {/* Contenido */}
-              <div className="flex-1 flex flex-col p-5">
-                <h2 className="text-base font-normal mb-1 truncate text-heading">
-                  {trial.name}
-                </h2>
-                <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-                  {trial.description}
-                </p>
-                {/* Barra de progreso y etapas */}
-                <div className="w-full flex flex-col gap-1 mb-4">
-                  <div className="relative w-full h-1 bg-gray-200 rounded-full">
-                    <div
-                      className="h-1 rounded-full absolute top-0 left-0 bg-primary-dark"
-                      style={{ width: `${trial.progress}%` }}
-                    />
-                    {/* Circulo de close-out */}
-                    <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-primary-dark" />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>
-                      {getStage(trial) === "Start"
-                        ? "Start"
-                        : getStage(trial) === "Routine visits"
-                        ? "Routine visits"
-                        : ""}
-                    </span>
-                    <span>Close-out</span>
-                  </div>
-                </div>
-                {/* Upcoming */}
-                <div className="flex items-center gap-2 bg-[#6C757D] bg-opacity-10 text-[#6C757D] text-xs rounded-md px-3 py-2 mb-2">
-                  <Calendar className="h-4 w-4 text-[#6C757D]" />
-                  <span className="font-medium">Next:</span> {trial.upcoming}
-                </div>
-                {/* Pending task */}
-                <div className="flex items-center gap-2 bg-[#6C757D] bg-opacity-10 text-[#6C757D] text-xs rounded-md px-3 py-2">
-                  <AlertCircle className="h-4 w-4 text-[#6C757D]" />
-                  {trial.pendingTask}
-                </div>
-              </div>
-            </div>
+              trial={trial}
+              onClick={() => handleTrialClick(trial)}
+              getStage={getStage}
+            />
           ))}
-        </div>
-      )}
-
-      {/* Panel lateral de detalles del trial */}
-      {selectedTrial && (
-        <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-50"
-          onClick={() => setSelectedTrial(null)}
-        >
-          <div
-            className="fixed right-0 top-0 h-full w-[600px] bg-white shadow-xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {selectedTrial.name}
-              </h2>
-              <button
-                onClick={() => setSelectedTrial(null)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X className="h-5 w-5 text-gray-500" />
-              </button>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex border-b bg-gray-50">
-              <button className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 bg-white">
-                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                Basic Information
-              </button>
-              <button className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
-                <BarChart3 className="h-4 w-4" />
-                Enrollment Progress
-              </button>
-              <button className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
-                <Zap className="h-4 w-4" />
-                Quick Access
-              </button>
-              <button className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
-                <Clock className="h-4 w-4" />
-                Comments
-              </button>
-            </div>
-
-            {/* Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Study name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Study name
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.name}
-                </div>
-              </div>
-
-              {/* Study description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Study description
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.description}
-                </div>
-              </div>
-
-              {/* Sponsor */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sponsor
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.sponsor || "LumenPath Biosciences"}
-                </div>
-              </div>
-
-              {/* PI and study coordinator contacts */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  PI and study coordinator contacts
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.piContact || "Prof. Cesare Hassan"}
-                </div>
-              </div>
-
-              {/* Locations & phases */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Locations & phases
-                </label>
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                    {selectedTrial.location}
-                  </span>
-                  <span className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                    {selectedTrial.phase}
-                  </span>
-                </div>
-              </div>
-
-              {/* Study start */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Study start
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.studyStart || "01 September 2025"}
-                </div>
-              </div>
-
-              {/* Estimated close-out date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estimated close-out date
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.estimatedCloseOut || "13 December 2025"}
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Progress
-                </label>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${selectedTrial.progress}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Start</span>
-                  <span>Close-out</span>
-                </div>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    selectedTrial.status === "Active"
-                      ? "bg-green-100 text-green-800"
-                      : selectedTrial.status === "Recruiting"
-                      ? "bg-blue-100 text-blue-800"
-                      : selectedTrial.status === "Planning"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {selectedTrial.status}
-                </span>
-              </div>
-
-              {/* Upcoming task */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Next upcoming task
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.upcoming}
-                </div>
-              </div>
-
-              {/* Pending task */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pending task
-                </label>
-                <div className="text-sm text-gray-900">
-                  {selectedTrial.pendingTask}
-                </div>
-              </div>
-
-              {/* Additional Information */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Additional Details
-                </h3>
-
-                {/* Protocol Version */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Protocol Version
-                  </label>
-                  <div className="text-sm text-gray-900">Version 2.1</div>
-                </div>
-
-                {/* IRB Approval */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    IRB Approval Status
-                  </label>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Approved
-                  </span>
-                </div>
-
-                {/* Target Enrollment */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Target Enrollment
-                  </label>
-                  <div className="text-sm text-gray-900">150 participants</div>
-                </div>
-
-                {/* Current Enrollment */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Enrollment
-                  </label>
-                  <div className="text-sm text-gray-900">
-                    {Math.floor((selectedTrial.progress / 100) * 150)}{" "}
-                    participants ({selectedTrial.progress}%)
-                  </div>
-                </div>
-
-                {/* Study Type */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Study Type
-                  </label>
-                  <div className="text-sm text-gray-900">Interventional</div>
-                </div>
-
-                {/* Primary Endpoint */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Primary Endpoint
-                  </label>
-                  <div className="text-sm text-gray-900">
-                    Change in symptom severity score from baseline to week 12
-                  </div>
-                </div>
-
-                {/* Last Updated */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Updated
-                  </label>
-                  <div className="text-sm text-gray-500">
-                    {new Date().toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </DashboardLayout>

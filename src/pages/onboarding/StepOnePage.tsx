@@ -6,23 +6,38 @@ import { updateOnboardingStep } from "@/services/userService";
 import { RoleSelector } from "@/components/RoleSelector";
 
 export const StepOnePage = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Load saved role if available
+  // Load saved data if available
   useEffect(() => {
     const savedStatus = localStorage.getItem("themison_onboarding");
     if (savedStatus) {
-      const { role: savedRole } = JSON.parse(savedStatus);
+      const { role: savedRole, userInfo } = JSON.parse(savedStatus);
       if (savedRole) {
         setRole(savedRole);
+      }
+      if (userInfo) {
+        setFirstName(userInfo.firstName || "");
+        setLastName(userInfo.lastName || "");
       }
     }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!firstName.trim() || !lastName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter your first and last name",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (!role) {
       toast({
@@ -33,8 +48,16 @@ export const StepOnePage = () => {
       return;
     }
 
-    // Save to localStorage using our service
-    updateOnboardingStep(1, role);
+    // Save user info and role to localStorage using our service
+    const userData = {
+      role,
+      userInfo: {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      },
+    };
+
+    updateOnboardingStep(1, userData);
 
     // Navigate to next step
     navigate("/onboarding/step2");
@@ -52,11 +75,56 @@ export const StepOnePage = () => {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6 max-w-md">
-            <RoleSelector
-              value={role}
-              onChange={setRole}
-              placeholder="Select your role"
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  First Name *
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Enter your first name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Last Name *
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Enter your last name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Your Role in Clinical Research *
+              </label>
+              <RoleSelector
+                value={role}
+                onChange={setRole}
+                placeholder="Select your role"
+              />
+            </div>
 
             <button
               type="submit"

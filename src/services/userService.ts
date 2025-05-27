@@ -11,6 +11,10 @@ export interface OnboardingStatus {
   completed: boolean;
   currentStep?: number;
   role?: string;
+  userInfo?: {
+    firstName: string;
+    lastName: string;
+  };
   studyInfo?: {
     name: string;
     location: string;
@@ -36,6 +40,9 @@ const STORAGE_KEYS = {
 // User functions
 export const saveUser = (user: User): void => {
   localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+
+  // Emit custom event to notify components of user data change
+  window.dispatchEvent(new CustomEvent("userDataUpdated"));
 };
 
 export const getUser = (): User | null => {
@@ -72,8 +79,15 @@ export const updateOnboardingStep = (step: number, data?: any): void => {
 
   // Update specific step data
   if (data) {
-    if (step === 1 && typeof data === "string") {
-      updatedStatus.role = data;
+    if (step === 1) {
+      if (typeof data === "string") {
+        // Legacy support for old role-only format
+        updatedStatus.role = data;
+      } else if (typeof data === "object" && data.role) {
+        // New format with user info and role
+        updatedStatus.role = data.role;
+        updatedStatus.userInfo = data.userInfo;
+      }
     } else if (step === 2 && typeof data === "object") {
       updatedStatus.studyInfo = data;
     } else if (step === 3 && Array.isArray(data)) {

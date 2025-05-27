@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isUserLoggedIn, isOnboardingCompleted } from "@/services/userService";
 import storage from "@/services/storage";
+import { runDataMigrations } from "@/utils/dataMigration";
+import { TrialProvider } from "@/contexts/TrialContext";
 
 import { DevTools } from "@/components/DevTools";
 
@@ -66,118 +68,125 @@ const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <DevTools />
-      <BrowserRouter>
-        <Routes>
-          {/* Landing Page */}
-          <Route path="/" element={<Index />} />
+const App = () => {
+  // Run data migrations on app startup
+  runDataMigrations();
 
-          {/* Auth Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/reset-password" element={<PasswordResetPage />} />
-          <Route
-            path="/register/success"
-            element={
-              <SuccessScreenPage
-                title="You've created a new account"
-                message="You can now sign in using your new account"
-                ctaText="Sign in with your new account"
-                ctaHref="/login"
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <DevTools />
+        <TrialProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Landing Page */}
+              <Route path="/" element={<Index />} />
+
+              {/* Auth Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/reset-password" element={<PasswordResetPage />} />
+              <Route
+                path="/register/success"
+                element={
+                  <SuccessScreenPage
+                    title="You've created a new account"
+                    message="You can now sign in using your new account"
+                    ctaText="Sign in with your new account"
+                    ctaHref="/login"
+                  />
+                }
               />
-            }
-          />
 
-          {/* Onboarding Routes - protected by login */}
-          <Route
-            path="/onboarding/step1"
-            element={
-              <ProtectedRoute>
-                <StepOnePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/onboarding/step2"
-            element={
-              <ProtectedRoute>
-                <StepTwoPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/onboarding/step3"
-            element={
-              <ProtectedRoute>
-                <StepThreePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/onboarding/complete"
-            element={
-              <ProtectedRoute>
-                <OnboardingCompletePage />
-              </ProtectedRoute>
-            }
-          />
+              {/* Onboarding Routes - protected by login */}
+              <Route
+                path="/onboarding/step1"
+                element={
+                  <ProtectedRoute>
+                    <StepOnePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onboarding/step2"
+                element={
+                  <ProtectedRoute>
+                    <StepTwoPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onboarding/step3"
+                element={
+                  <ProtectedRoute>
+                    <StepThreePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onboarding/complete"
+                element={
+                  <ProtectedRoute>
+                    <OnboardingCompletePage />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* Dashboard Routes - protected by login and completed onboarding */}
-          <Route
-            path="/dashboard"
-            element={
-              <OnboardingCheck>
-                <DashboardPage />
-              </OnboardingCheck>
-            }
-          />
-          <Route
-            path="/trials"
-            element={
-              <OnboardingCheck>
-                <TrialsPage />
-              </OnboardingCheck>
-            }
-          />
-          <Route
-            path="/organisation"
-            element={
-              <OnboardingCheck>
-                <OrganizationPage />
-              </OnboardingCheck>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <OnboardingCheck>
-                <NotificationsPage />
-              </OnboardingCheck>
-            }
-          />
-          <Route
-            path="/integrations"
-            element={
-              <OnboardingCheck>
-                <IntegrationsPage />
-              </OnboardingCheck>
-            }
-          />
+              {/* Dashboard Routes - protected by login and completed onboarding */}
+              <Route
+                path="/dashboard"
+                element={
+                  <OnboardingCheck>
+                    <DashboardPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/trials"
+                element={
+                  <OnboardingCheck>
+                    <TrialsPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/organisation"
+                element={
+                  <OnboardingCheck>
+                    <OrganizationPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <OnboardingCheck>
+                    <NotificationsPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/integrations"
+                element={
+                  <OnboardingCheck>
+                    <IntegrationsPage />
+                  </OnboardingCheck>
+                }
+              />
 
-          {/* Task Management Route */}
-          <Route path="/task-manager" element={<TaskManagementPage />} />
+              {/* Task Management Route */}
+              <Route path="/task-manager" element={<TaskManagementPage />} />
 
-          {/* Catch-all Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+              {/* Catch-all Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TrialProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

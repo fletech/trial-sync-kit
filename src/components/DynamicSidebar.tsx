@@ -13,36 +13,71 @@ import {
   Menu,
   ChevronRight,
   X,
+  ArrowLeft,
+  BarChart3,
+  MessageSquare,
+  Zap,
 } from "lucide-react";
 import { getUser, logout } from "@/services/userService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useTrialContext } from "@/contexts/TrialContext";
 
 interface NavItemProps {
-  to: string;
+  to?: string;
   icon: React.ReactNode;
   label: string;
   target?: string;
+  onClick?: () => void;
+  isActive?: boolean;
 }
 
-const NavItem = ({ to, icon, label, target }: NavItemProps) => (
-  <NavLink
-    to={to}
-    target={target}
-    className={({ isActive }) => `
-      flex items-center px-4 py-3 text-sm font-medium rounded-md
-      ${
-        isActive
-          ? "bg-[#E9ECEF] text-themison-text"
-          : "text-themison-gray hover:bg-gray-100"
-      }
-    `}
-  >
-    <span className="mr-3">{icon}</span>
-    <span>{label}</span>
-  </NavLink>
-);
+const NavItem = ({
+  to,
+  icon,
+  label,
+  target,
+  onClick,
+  isActive,
+}: NavItemProps) => {
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={`
+          flex items-center px-4 py-3 text-sm font-medium rounded-md w-full text-left
+          ${
+            isActive
+              ? "bg-[#E9ECEF] text-themison-text"
+              : "text-themison-gray hover:bg-gray-100"
+          }
+        `}
+      >
+        <span className="mr-3">{icon}</span>
+        <span>{label}</span>
+      </button>
+    );
+  }
+
+  return (
+    <NavLink
+      to={to || "#"}
+      target={target}
+      className={({ isActive: navIsActive }) => `
+        flex items-center px-4 py-3 text-sm font-medium rounded-md
+        ${
+          navIsActive || isActive
+            ? "bg-[#E9ECEF] text-themison-text"
+            : "text-themison-gray hover:bg-gray-100"
+        }
+      `}
+    >
+      <span className="mr-3">{icon}</span>
+      <span>{label}</span>
+    </NavLink>
+  );
+};
 
 const NotificationsNavItem = ({ open }: { open: boolean }) => {
   const { unreadCount } = useNotifications();
@@ -81,21 +116,23 @@ const NotificationsNavItem = ({ open }: { open: boolean }) => {
   );
 };
 
-interface SidebarProps {
+interface DynamicSidebarProps {
   open: boolean;
   onToggle: () => void;
 }
 
-export const Sidebar = ({ open, onToggle }: SidebarProps) => {
+export const DynamicSidebar = ({ open, onToggle }: DynamicSidebarProps) => {
   const [userData, setUserData] = useState({
     name: "Guest User",
     role: "Guest",
     avatar: "/placeholder.svg",
     email: "",
   });
+  const [currentTrialSection, setCurrentTrialSection] = useState("overview");
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { selectedTrial, isTrialView, setSelectedTrial } = useTrialContext();
 
   useEffect(() => {
     // Get user data from localStorage
@@ -110,7 +147,7 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
     }
   }, []);
 
-  // Listen for user data changes (e.g., after onboarding completion)
+  // Listen for user data changes
   useEffect(() => {
     const handleStorageChange = () => {
       const user = getUser();
@@ -124,10 +161,7 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
       }
     };
 
-    // Listen for storage changes
     window.addEventListener("storage", handleStorageChange);
-
-    // Also listen for custom events (for same-tab updates)
     window.addEventListener("userDataUpdated", handleStorageChange);
 
     return () => {
@@ -148,10 +182,7 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
     if (e.altKey) {
       e.preventDefault();
       (window as any).devToolsEnabled = !(window as any).devToolsEnabled;
-
-      // Dispatch custom event to notify DevTools component
       window.dispatchEvent(new CustomEvent("devToolsToggled"));
-
       toast({
         title: (window as any).devToolsEnabled
           ? "Dev Tools Enabled"
@@ -162,6 +193,127 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
       });
     }
   };
+
+  const handleBackToTrials = () => {
+    setSelectedTrial(null);
+    navigate("/trials");
+  };
+
+  const handleTrialSectionClick = (section: string) => {
+    setCurrentTrialSection(section);
+    // Emit a custom event to notify the TrialView component
+    window.dispatchEvent(
+      new CustomEvent("trialSectionChanged", {
+        detail: { section },
+      })
+    );
+  };
+
+  // Regular sidebar navigation items
+  const regularNavItems = (
+    <>
+      <div
+        className={`mb-1 px-4 text-xs font-medium text-themison-gray ${
+          !open && "lg:hidden"
+        }`}
+      >
+        Main menu
+      </div>
+      <nav className="space-y-1 mb-6">
+        <NavItem
+          to="/dashboard"
+          icon={<Home className="h-5 w-5" />}
+          label={open ? "Home" : ""}
+        />
+        <NavItem
+          to="/trials"
+          icon={<FileText className="h-5 w-5" />}
+          label={open ? "Trials" : ""}
+        />
+        <NavItem
+          to="/task-manager"
+          icon={<CheckSquare className="h-5 w-5" />}
+          label={open ? "Tasks" : ""}
+        />
+        <NavItem
+          to="/organisation"
+          icon={<Users className="h-5 w-5" />}
+          label={open ? "Organisation" : ""}
+        />
+        <NotificationsNavItem open={open} />
+        <NavItem
+          to="/integrations"
+          icon={<ExternalLink className="h-5 w-5" />}
+          label={open ? "Integrations" : ""}
+        />
+      </nav>
+    </>
+  );
+
+  // Trial-specific navigation items
+  const trialNavItems = (
+    <>
+      <div className="mb-4">
+        <button
+          onClick={handleBackToTrials}
+          className="flex items-center px-4 py-2 text-sm font-medium text-themison-gray hover:bg-gray-100 rounded-md w-full text-left"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {open && "Back to Trials"}
+        </button>
+      </div>
+
+      {open && selectedTrial && (
+        <div className="px-4 mb-4">
+          <h3 className="text-sm font-semibold text-themison-text truncate">
+            {selectedTrial.name}
+          </h3>
+          <p className="text-xs text-themison-gray">
+            {selectedTrial.phase} • {selectedTrial.location}
+          </p>
+        </div>
+      )}
+
+      <nav className="space-y-1 mb-6">
+        <NavItem
+          icon={<BarChart3 className="h-5 w-5" />}
+          label={open ? "Overview" : ""}
+          onClick={() => handleTrialSectionClick("overview")}
+          isActive={currentTrialSection === "overview"}
+        />
+        <NavItem
+          icon={<CheckSquare className="h-5 w-5" />}
+          label={open ? "Task Management" : ""}
+          onClick={() => handleTrialSectionClick("task-management")}
+          isActive={currentTrialSection === "task-management"}
+        />
+        <NavItem
+          icon={<FileText className="h-5 w-5" />}
+          label={open ? "Document Assistant" : ""}
+          onClick={() => handleTrialSectionClick("document-assistant")}
+          isActive={currentTrialSection === "document-assistant"}
+        />
+        <NavItem
+          icon={<Users className="h-5 w-5" />}
+          label={open ? "Team & Roles" : ""}
+          onClick={() => handleTrialSectionClick("team-roles")}
+          isActive={currentTrialSection === "team-roles"}
+        />
+        <NavItem
+          icon={<Bell className="h-5 w-5" />}
+          label={open ? "Notifications" : ""}
+          onClick={() => handleTrialSectionClick("notifications")}
+          isActive={currentTrialSection === "notifications"}
+        />
+        <NavItem
+          icon={<Zap className="h-5 w-5" />}
+          label={open ? "Integrations" : ""}
+          onClick={() => handleTrialSectionClick("integrations")}
+          isActive={currentTrialSection === "integrations"}
+        />
+      </nav>
+    </>
+  );
 
   return (
     <>
@@ -217,41 +369,7 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
 
           {/* Navigation */}
           <div className="flex-1 overflow-auto py-4 px-3">
-            <div
-              className={`mb-1 px-4 text-xs font-medium text-themison-gray ${
-                !open && "lg:hidden"
-              }`}
-            >
-              Main menu
-            </div>
-            <nav className="space-y-1 mb-6">
-              <NavItem
-                to="/dashboard"
-                icon={<Home className="h-5 w-5" />}
-                label={open ? "Home" : ""}
-              />
-              <NavItem
-                to="/trials"
-                icon={<FileText className="h-5 w-5" />}
-                label={open ? "Trials" : ""}
-              />
-              <NavItem
-                to="/task-manager"
-                icon={<CheckSquare className="h-5 w-5" />}
-                label={open ? "Tasks" : ""}
-              />
-              <NavItem
-                to="/organisation"
-                icon={<Users className="h-5 w-5" />}
-                label={open ? "Organisation" : ""}
-              />
-              <NotificationsNavItem open={open} />
-              <NavItem
-                to="/integrations"
-                icon={<ExternalLink className="h-5 w-5" />}
-                label={open ? "Integrations" : ""}
-              />
-            </nav>
+            {isTrialView ? trialNavItems : regularNavItems}
 
             <div
               className={`mb-1 px-4 text-xs font-medium text-themison-gray ${

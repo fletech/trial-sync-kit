@@ -6,6 +6,8 @@ import { Plus, X } from "lucide-react";
 import {
   updateOnboardingStep,
   getOnboardingStatus,
+  saveUser,
+  getUser,
 } from "@/services/userService";
 import storage from "@/services/storage";
 import { RoleSelector, CLINICAL_ROLES } from "@/components/RoleSelector";
@@ -74,12 +76,12 @@ export const StepThreePage = () => {
       const firstTrial = {
         name: name,
         description: `Clinical trial created during onboarding setup. This study will be conducted in ${location}.`,
-        status: "Planning",
+        status: "planning", // Aligned with Kanban workflow
         location: location,
         progress: 0,
         upcoming: "Complete study setup and begin recruitment",
         pendingTask: "Finalize protocol and regulatory approvals",
-        phase: "Study start-up", // Default phase for new trials
+        phase: "Phase I", // Default clinical trial phase
         image: "",
         isNew: true,
         sponsor: sponsor,
@@ -116,11 +118,28 @@ export const StepThreePage = () => {
         storage.saveTeamMember(teamMember);
       });
 
-      // Create notification for team setup
-      storage.saveNotification({
-        type: "team_update",
-        title: "Team Members Added",
-        message: `${validMembers.length} team member(s) have been added to your organization.`,
+      // Create notification for team setup with a small delay to ensure unique timestamps
+      setTimeout(() => {
+        storage.saveNotification({
+          type: "team_update",
+          title: "Team Members Added",
+          message: `${validMembers.length} team member(s) have been added to your organization.`,
+        });
+      }, 10);
+    }
+
+    // Save user information to user profile
+    if (onboardingStatus?.userInfo) {
+      const currentUser = getUser();
+      const { firstName, lastName } = onboardingStatus.userInfo;
+
+      saveUser({
+        email: currentUser?.email || "",
+        name: `${firstName} ${lastName}`,
+        role: onboardingStatus.role || "",
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          firstName + " " + lastName
+        )}&background=5B6CFF&color=fff`,
       });
     }
 

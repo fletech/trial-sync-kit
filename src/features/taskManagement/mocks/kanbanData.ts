@@ -1,11 +1,7 @@
-// Columnas del Kanban
-export const columns = [
-  { id: "planning", name: "Planning", color: "#2563eb" },
-  { id: "regulatory", name: "Regulatory Prep", color: "#6366f1" },
-  { id: "site-initiation", name: "Site Initiation", color: "#0ea5e9" },
-  { id: "recruiting", name: "Recruiting", color: "#22c55e" },
-  { id: "study", name: "Study Conduct", color: "#f59e42" },
-];
+import { KANBAN_COLUMNS } from "@/constants/trialConstants";
+
+// Columnas del Kanban - Using unified constants
+export const columns = KANBAN_COLUMNS;
 
 // Tareas para Kanban y Gantt
 export const tasks = [

@@ -4,9 +4,11 @@ const storage = {
   getTrials: () => JSON.parse(localStorage.getItem("trials") || "[]"),
   saveTrial: (trial) => {
     const trials = storage.getTrials();
-    trials.push({ ...trial, id: Date.now().toString() });
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newTrial = { ...trial, id: uniqueId };
+    trials.push(newTrial);
     localStorage.setItem("trials", JSON.stringify(trials));
-    return trial;
+    return newTrial;
   },
   updateTrial: (id, updatedTrial) => {
     const trials = storage.getTrials();
@@ -29,7 +31,8 @@ const storage = {
   getTeamMembers: () => JSON.parse(localStorage.getItem("team") || "[]"),
   saveTeamMember: (member) => {
     const team = storage.getTeamMembers();
-    const newMember = { ...member, id: Date.now().toString() };
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newMember = { ...member, id: uniqueId };
     team.push(newMember);
     localStorage.setItem("team", JSON.stringify(team));
     return newMember;
@@ -56,9 +59,11 @@ const storage = {
     JSON.parse(localStorage.getItem("notifications") || "[]"),
   saveNotification: (notification) => {
     const notifications = storage.getNotifications();
+    // Generate a more unique ID to avoid collisions
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newNotification = {
       ...notification,
-      id: Date.now().toString(),
+      id: uniqueId,
       createdAt: new Date().toISOString(),
       read: false,
     };
@@ -67,20 +72,33 @@ const storage = {
     return newNotification;
   },
   markNotificationAsRead: (id) => {
-    const notifications = storage.getNotifications();
-    const notification = notifications.find((n) => n.id === id);
-    if (notification) {
-      notification.read = true;
-      localStorage.setItem("notifications", JSON.stringify(notifications));
-      return notification;
+    try {
+      const notifications = storage.getNotifications();
+      const notificationIndex = notifications.findIndex((n) => n.id === id);
+      if (notificationIndex !== -1) {
+        notifications[notificationIndex].read = true;
+        localStorage.setItem("notifications", JSON.stringify(notifications));
+
+        return notifications[notificationIndex];
+      } else {
+        console.warn("Notification not found with ID:", id);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      return null;
     }
-    return null;
   },
   markAllNotificationsAsRead: () => {
-    const notifications = storage.getNotifications();
-    notifications.forEach((notification) => (notification.read = true));
-    localStorage.setItem("notifications", JSON.stringify(notifications));
-    return notifications;
+    try {
+      const notifications = storage.getNotifications();
+      notifications.forEach((notification) => (notification.read = true));
+      localStorage.setItem("notifications", JSON.stringify(notifications));
+      return notifications;
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      return [];
+    }
   },
   deleteNotification: (id) => {
     const notifications = storage.getNotifications();
