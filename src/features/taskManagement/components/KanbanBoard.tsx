@@ -8,10 +8,10 @@ import {
 } from "@dnd-kit/sortable";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { useTasks } from "../context/TaskContext";
 
 interface KanbanBoardProps {
   columns: any[];
-  tasks: any[];
 }
 
 // Utilidad para agrupar tareas por columna
@@ -24,7 +24,8 @@ function groupTasksByColumn(tasks, columns) {
   return grouped;
 }
 
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ columns, tasks }) => {
+export const KanbanBoard = ({ columns }) => {
+  const { tasks } = useTasks();
   const [columnTasks, setColumnTasks] = useState(() =>
     groupTasksByColumn(tasks, columns)
   );

@@ -1,0 +1,200 @@
+/* Personalización para Frappe Gantt en Themison */
+
+/* Colores de marca Themison */
+:root {
+  --themison-primary: #2b59ff;
+  --themison-primary-light: #5680ff;
+  --themison-primary-very-light: #dfe7ff;
+  --themison-green: #00c07c;
+  --themison-text: #172b4d;
+  --weekend-highlight-color: #f1f5f9;
+}
+
+/* Contenedor principal */
+.gantt-container {
+  position: relative;
+  min-height: 500px;
+  overflow: auto;
+}
+
+.gantt {
+  width: 100%;
+  height: 100%;
+}
+
+.gantt .grid-background {
+  fill: #ffffff;
+}
+
+.gantt .grid-header {
+  fill: #f9fafb;
+  stroke: #e5e7eb;
+}
+
+.gantt .grid-row {
+  fill: #ffffff;
+}
+
+.gantt .grid-row:nth-child(even) {
+  fill: #f9fafb;
+}
+
+.gantt .row-line {
+  stroke: #e5e7eb;
+}
+
+.gantt .tick {
+  stroke: #e5e7eb;
+}
+
+.gantt .tick.thick {
+  stroke: #cbd5e1;
+  stroke-width: 1.5;
+}
+
+/* Barras de tareas */
+.gantt .bar {
+  fill: var(--themison-primary);
+  stroke: var(--themison-primary);
+  stroke-width: 0;
+}
+
+.gantt .bar-progress {
+  fill: var(--themison-green);
+}
+
+/* Estilo para tareas principales */
+.gantt .bar.parent-task {
+  fill: var(--themison-primary);
+  stroke: none;
+}
+
+/* Estilo para subtareas */
+.gantt .bar.child-task {
+  fill: var(--themison-primary-light);
+  stroke: none;
+}
+
+/* Estilo para sub-subtareas */
+.gantt .bar.grandchild-task {
+  fill: var(--themison-primary-very-light);
+  stroke: var(--themison-primary);
+  stroke-width: 1;
+}
+
+/* Flechas de dependencia */
+.gantt .arrow {
+  stroke: #64748b;
+}
+
+/* Texto en las barras */
+.gantt .bar-label {
+  fill: #ffffff;
+  dominant-baseline: central;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Estilos para el popup */
+.themison-gantt-popup {
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 12px;
+  max-width: 300px;
+  z-index: 100;
+}
+
+.themison-gantt-popup h4 {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: var(--themison-text);
+  font-size: 14px;
+}
+
+.themison-gantt-popup .dates {
+  margin-bottom: 8px;
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.themison-gantt-popup .owner,
+.themison-gantt-popup .priority {
+  margin-bottom: 6px;
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.themison-gantt-popup .owner {
+  font-weight: 500;
+}
+
+.themison-gantt-popup .priority {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.themison-gantt-popup .progress-label {
+  margin-bottom: 4px;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.themison-gantt-popup .progress-bar {
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.themison-gantt-popup .progress-fill {
+  height: 100%;
+  background-color: var(--themison-green);
+}
+
+/* Resaltado para fines de semana */
+.gantt .today-highlight {
+  fill: var(--themison-primary);
+  opacity: 0.1;
+}
+
+.gantt .weekend-highlight {
+  fill: var(--weekend-highlight-color);
+}
+
+/* Estilo para botones de zoom y modos de vista */
+.gantt-container-header {
+  padding: 8px 12px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gantt-container-header button {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #4b5563;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.gantt-container-header button:hover {
+  background-color: #f3f4f6;
+}
+
+.gantt-container-header button.active {
+  background-color: var(--themison-primary);
+  color: white;
+  border-color: var(--themison-primary);
+}
