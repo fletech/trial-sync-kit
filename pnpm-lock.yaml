@@ -101,6 +101,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.4
         version: 1.2.7(@types/react-dom@18.3.7(@types/react@18.3.22))(@types/react@18.3.22)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@stagewise/toolbar-react':
+        specifier: ^0.1.2
+        version: 0.1.2(@swc/core@1.11.29(@swc/helpers@0.5.17))(@types/react@18.3.22)(jiti@1.21.7)(postcss@8.5.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(use-sync-external-store@1.5.0(react@18.3.1))(vite@5.4.19(@types/node@22.15.21))(yaml@2.8.0)
       '@tanstack/react-query':
         specifier: ^5.56.2
         version: 5.76.1(react@18.3.1)
@@ -119,6 +122,9 @@ importers:
       embla-carousel-react:
         specifier: ^8.3.0
         version: 8.6.0(react@18.3.1)
+      frappe-gantt:
+        specifier: ^1.0.3
+        version: 1.0.3
       input-otp:
         specifier: ^1.2.4
         version: 1.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1457,6 +1463,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@stagewise/toolbar-react@0.1.2':
+    resolution: {integrity: sha512-Vxt7f3TwFuHOgfxTFT4aBcojynat15qMUA+hArwb3EJxwjZR8VuN3Phi0K5RnniutphiBn5iNypzwGs5mFWmVw==}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      react: '>=18.0.0'
+
   '@stagewise/toolbar@0.2.1':
     resolution: {integrity: sha512-ITA68sqtXRklV6TDDyhT+3GDQqdtZFcZY9WBdPv6XUoATBHcOjpblt0yvQoOuMXAohbBGky4qgbDqxYgLsYbGQ==}
 
@@ -2094,6 +2106,9 @@ packages:
 
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
+
+  frappe-gantt@1.0.3:
+    resolution: {integrity: sha512-NkwO2MD4JoWJ82ZruK/rQVIAEpI3nXUoo5gG+wQHV18yKXhzZsTehVfCXJ92DLl/foTtut1RVL0dqj7fo6Cfpg==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -4111,6 +4126,26 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.41.0':
     optional: true
 
+  '@stagewise/toolbar-react@0.1.2(@swc/core@1.11.29(@swc/helpers@0.5.17))(@types/react@18.3.22)(jiti@1.21.7)(postcss@8.5.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(use-sync-external-store@1.5.0(react@18.3.1))(vite@5.4.19(@types/node@22.15.21))(yaml@2.8.0)':
+    dependencies:
+      '@stagewise/toolbar': 0.2.1(@swc/core@1.11.29(@swc/helpers@0.5.17))(@types/react@18.3.22)(jiti@1.21.7)(postcss@8.5.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(use-sync-external-store@1.5.0(react@18.3.1))(vite@5.4.19(@types/node@22.15.21))(yaml@2.8.0)
+      '@types/react': 18.3.22
+      react: 18.3.1
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - encoding
+      - immer
+      - jiti
+      - postcss
+      - react-dom
+      - supports-color
+      - tsx
+      - typescript
+      - use-sync-external-store
+      - vite
+      - yaml
+
   '@stagewise/toolbar@0.2.1(@swc/core@1.11.29(@swc/helpers@0.5.17))(@types/react@18.3.22)(jiti@1.21.7)(postcss@8.5.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.8.3)(use-sync-external-store@1.5.0(react@18.3.1))(vite@5.4.19(@types/node@22.15.21))(yaml@2.8.0)':
     dependencies:
       '@headlessui/react': 2.2.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4829,6 +4864,8 @@ snapshots:
       mime-types: 2.1.35
 
   fraction.js@4.3.7: {}
+
+  frappe-gantt@1.0.3: {}
 
   fsevents@2.3.3:
     optional: true
