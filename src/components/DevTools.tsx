@@ -1,8 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import storage from "@/services/storage";
 
 export const DevTools = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
+
+  useEffect(() => {
+    // Check initial state
+    setIsEnabled(!!(window as any).devToolsEnabled);
+
+    // Listen for custom events when dev tools are toggled
+    const handleDevToolsToggle = () => {
+      setIsEnabled(!!(window as any).devToolsEnabled);
+    };
+
+    window.addEventListener("devToolsToggled", handleDevToolsToggle);
+
+    return () => {
+      window.removeEventListener("devToolsToggled", handleDevToolsToggle);
+    };
+  }, []);
 
   const clearAllData = () => {
     localStorage.clear();
@@ -32,7 +49,7 @@ export const DevTools = () => {
   };
 
   // Only show when explicitly enabled
-  if (!(window as any).devToolsEnabled) {
+  if (!isEnabled) {
     return null;
   }
 

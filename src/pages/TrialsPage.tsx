@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import storage from "@/services/storage";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { notificationEvents } from "@/hooks/useNotifications";
 import {
   Dialog,
@@ -98,7 +98,6 @@ export const TrialsPage = () => {
     studyStart: "",
     estimatedCloseOut: "",
   });
-  const { toast } = useToast();
 
   useEffect(() => {
     // Load trials from localStorage only
@@ -112,11 +111,7 @@ export const TrialsPage = () => {
 
   const handleCreateTrial = () => {
     if (!newTrial.name || !newTrial.description || !newTrial.location) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
+      toast.error("Please fill in all required fields.");
       return;
     }
 
@@ -155,8 +150,7 @@ export const TrialsPage = () => {
     // Emit event to update notification count
     notificationEvents.emit();
 
-    toast({
-      title: "Trial Created",
+    toast.success("Trial Created", {
       description: "New trial has been created successfully.",
     });
   };

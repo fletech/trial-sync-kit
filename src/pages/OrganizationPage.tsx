@@ -3,13 +3,14 @@ import { DashboardLayout } from "@/layouts/DashboardLayout";
 import {
   Plus,
   Search,
-  MoreHorizontal,
   Mail,
   Shield,
   Eye,
   User,
   Users,
+  Edit,
 } from "lucide-react";
+import { RoleSelector, CLINICAL_ROLES } from "@/components/RoleSelector";
 import storage from "@/services/storage";
 import { TeamMemberInvite } from "@/components/TeamMemberInvite";
 import { notificationEvents } from "@/hooks/useNotifications";
@@ -21,13 +22,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Dialog,
   DialogContent,
@@ -38,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -46,19 +42,19 @@ interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "member" | "viewer";
+  role: string;
   status: "active" | "inactive";
   avatar: string;
 }
 
 const getRoleIcon = (role: string) => {
   switch (role) {
-    case "admin":
+    case "Principal investigator":
       return <Shield className="h-4 w-4" />;
-    case "member":
+    case "Clinical research coordinator":
       return <User className="h-4 w-4" />;
-    case "viewer":
-      return <Eye className="h-4 w-4" />;
+    case "Physician/doctor/PhD student":
+      return <Users className="h-4 w-4" />;
     default:
       return <User className="h-4 w-4" />;
   }
@@ -66,12 +62,12 @@ const getRoleIcon = (role: string) => {
 
 const getRoleColor = (role: string) => {
   switch (role) {
-    case "admin":
+    case "Principal investigator":
       return "bg-themison-error/10 text-themison-error border-themison-error/20 hover:bg-themison-error/15 transition-colors";
-    case "member":
+    case "Clinical research coordinator":
       return "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 transition-colors";
-    case "viewer":
-      return "bg-surface text-secondary border-secondary/20 hover:bg-secondary/10 transition-colors";
+    case "Physician/doctor/PhD student":
+      return "bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-150 transition-colors";
     default:
       return "bg-surface text-secondary border-secondary/20 hover:bg-secondary/10 transition-colors";
   }
@@ -97,6 +93,13 @@ export const OrganizationPage = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    role: "",
+  });
 
   useEffect(() => {
     // Load team members
@@ -120,11 +123,11 @@ export const OrganizationPage = () => {
       return;
     }
 
-    // Convert role names to lowercase for consistency
+    // Keep role names as they are
     const normalizedMembers = members.map((member) => ({
       name: member.email.split("@")[0], // Use email prefix as name for now
       email: member.email,
-      role: member.role.toLowerCase() as "admin" | "member" | "viewer",
+      role: member.role,
       status: "active" as const,
       avatar: "/api/placeholder/40/40",
     }));
@@ -154,28 +157,40 @@ export const OrganizationPage = () => {
     );
   };
 
-  const handleRoleChange = (
-    memberId: string,
-    newRole: "admin" | "member" | "viewer"
-  ) => {
-    const member = teamMembers.find((m) => m.id === memberId);
-    storage.updateTeamMember(memberId, { role: newRole });
+  const handleEditMember = (member: TeamMember) => {
+    setEditingMember(member);
+    setEditForm({
+      name: member.name,
+      email: member.email,
+      role: member.role,
+    });
+    setIsEditModalOpen(true);
+  };
 
-    // Create notification for role change
-    if (member) {
-      storage.saveNotification({
-        type: "team_update",
-        title: "Team Member Role Updated",
-        message: `${member.name}'s role has been changed to ${newRole}`,
-      });
+  const handleUpdateMember = () => {
+    if (!editingMember) return;
 
-      // Emit event to update notification count
-      notificationEvents.emit();
-    }
+    storage.updateTeamMember(editingMember.id, {
+      name: editForm.name,
+      email: editForm.email,
+      role: editForm.role,
+    });
+
+    // Create notification for member update
+    storage.saveNotification({
+      type: "team_update",
+      title: "Team Member Updated",
+      message: `${editForm.name}'s information has been updated`,
+    });
+
+    // Emit event to update notification count
+    notificationEvents.emit();
 
     loadTeamMembers();
+    setIsEditModalOpen(false);
+    setEditingMember(null);
 
-    toast.success("Member role has been updated successfully");
+    toast.success("Member information has been updated successfully");
   };
 
   const handleStatusToggle = (memberId: string, currentStatus: string) => {
@@ -269,6 +284,57 @@ export const OrganizationPage = () => {
         </div>
       </div>
 
+      {/* Edit Member Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Team Member</DialogTitle>
+            <DialogDescription>
+              Update member information and role.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, name: e.target.value })
+                }
+                placeholder="Member name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, email: e.target.value })
+                }
+                placeholder="member@email.com"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-role">Role</Label>
+              <RoleSelector
+                value={editForm.role}
+                onChange={(role) => setEditForm({ ...editForm, role })}
+                placeholder="Select role"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateMember}>Update Member</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -334,58 +400,15 @@ export const OrganizationPage = () => {
                     </Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="bg-white border border-gray-200 shadow-lg"
-                      >
-                        <DropdownMenuItem
-                          onClick={() => handleRoleChange(member.id, "admin")}
-                          disabled={member.role === "admin"}
-                        >
-                          <Shield className="h-4 w-4 mr-2" />
-                          Make Admin
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleRoleChange(member.id, "member")}
-                          disabled={member.role === "member"}
-                        >
-                          <User className="h-4 w-4 mr-2" />
-                          Make Member
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleRoleChange(member.id, "viewer")}
-                          disabled={member.role === "viewer"}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Make Viewer
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusToggle(member.id, member.status)
-                          }
-                        >
-                          {member.status === "active"
-                            ? "Deactivate"
-                            : "Activate"}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleRemoveMember(member.id, member.name)
-                          }
-                          className="text-red-600"
-                        >
-                          Remove Member
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditMember(member)}
+                      className="text-primary hover:text-primary-hover"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
                   </td>
                 </tr>
               ))}

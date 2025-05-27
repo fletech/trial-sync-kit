@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
+import { RoleSelector, CLINICAL_ROLES } from "@/components/RoleSelector";
 
 interface TeamMember {
   email: string;
@@ -19,12 +20,15 @@ export const TeamMemberInvite = ({
   onCancel,
   submitText = "Send Invitations",
   showCancel = true,
-  initialMembers = [{ email: "", role: "Member" }],
+  initialMembers = [{ email: "", role: CLINICAL_ROLES[1] }], // Clinical research coordinator
 }: TeamMemberInviteProps) => {
   const [members, setMembers] = useState<TeamMember[]>(initialMembers);
 
   const addMember = () => {
-    setMembers([...members, { email: "", role: "Member" }]);
+    setMembers([
+      ...members,
+      { email: "", role: CLINICAL_ROLES[1] }, // Clinical research coordinator
+    ]);
   };
 
   const removeMember = (index: number) => {
@@ -68,15 +72,11 @@ export const TeamMemberInvite = ({
             </div>
             <div className="w-1/3">
               <label className="block text-sm font-medium mb-1">Role</label>
-              <select
+              <RoleSelector
                 value={member.role}
-                onChange={(e) => updateMember(index, "role", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="Admin">Admin</option>
-                <option value="Member">Member</option>
-                <option value="Viewer">Viewer</option>
-              </select>
+                onChange={(role) => updateMember(index, "role", role)}
+                placeholder="Select role"
+              />
             </div>
             {members.length > 1 && (
               <button

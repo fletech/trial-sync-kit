@@ -1,4 +1,3 @@
-
 // User types
 export interface User {
   email: string;
@@ -16,7 +15,7 @@ export interface OnboardingStatus {
     name: string;
     location: string;
     sponsor: string;
-    phase: string;
+    phase?: string;
   };
   team?: Array<{ email: string; role: string }>;
 }
@@ -29,9 +28,9 @@ export interface AuthStatus {
 }
 
 const STORAGE_KEYS = {
-  USER: 'themison_user',
-  ONBOARDING: 'themison_onboarding',
-  AUTH: 'themison_auth'
+  USER: "themison_user",
+  ONBOARDING: "themison_onboarding",
+  AUTH: "themison_auth",
 };
 
 // User functions
@@ -65,28 +64,28 @@ export const isOnboardingCompleted = (): boolean => {
 
 export const updateOnboardingStep = (step: number, data?: any): void => {
   const currentStatus = getOnboardingStatus() || { completed: false };
-  
+
   let updatedStatus: OnboardingStatus = {
     ...currentStatus,
-    currentStep: step
+    currentStep: step,
   };
-  
+
   // Update specific step data
   if (data) {
-    if (step === 1 && typeof data === 'string') {
+    if (step === 1 && typeof data === "string") {
       updatedStatus.role = data;
-    } else if (step === 2 && typeof data === 'object') {
+    } else if (step === 2 && typeof data === "object") {
       updatedStatus.studyInfo = data;
     } else if (step === 3 && Array.isArray(data)) {
       updatedStatus.team = data;
     }
   }
-  
+
   // Mark as completed when reaching the final step
   if (step === 3) {
     updatedStatus.completed = true;
   }
-  
+
   saveOnboardingStatus(updatedStatus);
 };
 
@@ -110,16 +109,16 @@ export const login = (email: string, rememberMe: boolean = false): void => {
   saveAuthStatus({
     isLoggedIn: true,
     rememberMe,
-    lastLogin: new Date().toISOString()
+    lastLogin: new Date().toISOString(),
   });
-  
+
   // Save user with minimal info - in a real app we'd get more user data from the backend
   saveUser({ email });
 };
 
 export const logout = (): void => {
   const authStatus = getAuthStatus();
-  
+
   // If remember me is not set, clear everything
   if (!authStatus?.rememberMe) {
     clearUser();
@@ -128,7 +127,7 @@ export const logout = (): void => {
     // Just update the logged in status
     saveAuthStatus({
       ...authStatus,
-      isLoggedIn: false
+      isLoggedIn: false,
     });
   }
 };

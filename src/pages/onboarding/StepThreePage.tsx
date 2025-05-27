@@ -8,6 +8,7 @@ import {
   getOnboardingStatus,
 } from "@/services/userService";
 import storage from "@/services/storage";
+import { RoleSelector, CLINICAL_ROLES } from "@/components/RoleSelector";
 
 interface TeamMember {
   email: string;
@@ -16,16 +17,14 @@ interface TeamMember {
 
 export const StepThreePage = () => {
   const [members, setMembers] = useState<TeamMember[]>([
-    { email: "", role: "Member" },
+    { email: "", role: CLINICAL_ROLES[1] }, // Clinical research coordinator
   ]);
-  const [inviteToStudy, setInviteToStudy] = useState(true);
 
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Get study name from localStorage if available
+  // Get onboarding status
   const onboardingStatus = getOnboardingStatus();
-  const studyName = onboardingStatus?.studyInfo?.name || "your study";
 
   // Load saved team members if available
   useEffect(() => {
@@ -35,7 +34,10 @@ export const StepThreePage = () => {
   }, []);
 
   const addMember = () => {
-    setMembers([...members, { email: "", role: "Member" }]);
+    setMembers([
+      ...members,
+      { email: "", role: CLINICAL_ROLES[1] }, // Clinical research coordinator
+    ]);
   };
 
   const removeMember = (index: number) => {
@@ -67,17 +69,17 @@ export const StepThreePage = () => {
 
     // Create the first trial from onboarding study info
     if (onboardingStatus?.studyInfo) {
-      const { name, location, sponsor, phase } = onboardingStatus.studyInfo;
+      const { name, location, sponsor } = onboardingStatus.studyInfo;
 
       const firstTrial = {
         name: name,
-        description: `Clinical trial created during onboarding setup. This study focuses on ${phase.toLowerCase()} research conducted in ${location}.`,
+        description: `Clinical trial created during onboarding setup. This study will be conducted in ${location}.`,
         status: "Planning",
         location: location,
         progress: 0,
         upcoming: "Complete study setup and begin recruitment",
         pendingTask: "Finalize protocol and regulatory approvals",
-        phase: phase,
+        phase: "Study start-up", // Default phase for new trials
         image: "",
         isNew: true,
         sponsor: sponsor,
@@ -105,7 +107,7 @@ export const StepThreePage = () => {
         const teamMember = {
           name: member.email.split("@")[0], // Use email prefix as name
           email: member.email,
-          role: member.role.toLowerCase(),
+          role: member.role,
           status: "active",
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
             member.email.split("@")[0]
@@ -177,14 +179,10 @@ export const StepThreePage = () => {
                     <label className="block text-sm font-medium mb-1">
                       Role
                     </label>
-                    <input
-                      type="text"
+                    <RoleSelector
                       value={member.role}
-                      onChange={(e) =>
-                        updateMember(index, "role", e.target.value)
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Member"
+                      onChange={(role) => updateMember(index, "role", role)}
+                      placeholder="Select role"
                     />
                   </div>
                   {members.length > 1 && (
@@ -208,19 +206,6 @@ export const StepThreePage = () => {
                 <Plus className="h-4 w-4 mr-1" />
                 Add more
               </button>
-
-              <div className="flex items-center space-x-2 pt-4">
-                <input
-                  id="invite-to-study"
-                  type="checkbox"
-                  checked={inviteToStudy}
-                  onChange={() => setInviteToStudy(!inviteToStudy)}
-                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <label htmlFor="invite-to-study">
-                  Invite them to {studyName}
-                </label>
-              </div>
 
               <div className="flex justify-end space-x-4 pt-4">
                 <button

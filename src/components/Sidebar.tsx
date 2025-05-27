@@ -122,6 +122,10 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
     if (e.altKey) {
       e.preventDefault();
       (window as any).devToolsEnabled = !(window as any).devToolsEnabled;
+
+      // Dispatch custom event to notify DevTools component
+      window.dispatchEvent(new CustomEvent("devToolsToggled"));
+
       toast({
         title: (window as any).devToolsEnabled
           ? "Dev Tools Enabled"
@@ -130,8 +134,6 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
           ? "Dev tools are now visible"
           : "Dev tools are now hidden",
       });
-      // Force re-render by triggering a state change
-      setUserData({ ...userData });
     }
   };
 

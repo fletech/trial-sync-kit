@@ -2,20 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { OnboardingLayout } from "@/features/onboarding/components/OnboardingLayout";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown } from "lucide-react";
 import {
   updateOnboardingStep,
   getOnboardingStatus,
 } from "@/services/userService";
 
-const phases = ["Phase 1", "Phase 2", "Phase 3", "Phase 4"];
-
 export const StepTwoPage = () => {
   const [studyName, setStudyName] = useState("");
   const [location, setLocation] = useState("");
   const [sponsorName, setSponsorName] = useState("");
-  const [phase, setPhase] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -24,23 +19,17 @@ export const StepTwoPage = () => {
   useEffect(() => {
     const onboardingStatus = getOnboardingStatus();
     if (onboardingStatus?.studyInfo) {
-      const {
-        name,
-        location: loc,
-        sponsor,
-        phase: ph,
-      } = onboardingStatus.studyInfo;
+      const { name, location: loc, sponsor } = onboardingStatus.studyInfo;
       setStudyName(name || "");
       setLocation(loc || "");
       setSponsorName(sponsor || "");
-      setPhase(ph || "");
     }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!studyName || !location || !sponsorName || !phase) {
+    if (!studyName || !location || !sponsorName) {
       toast({
         title: "Required fields missing",
         description: "Please fill in all fields to continue",
@@ -54,7 +43,6 @@ export const StepTwoPage = () => {
       name: studyName,
       location,
       sponsor: sponsorName,
-      phase,
     });
 
     // Navigate to next step
@@ -125,46 +113,6 @@ export const StepTwoPage = () => {
                 className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
-            </div>
-
-            <div>
-              <label htmlFor="phase" className="block text-sm font-medium mb-1">
-                Phase
-              </label>
-              <div className="relative">
-                <div
-                  className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary flex justify-between items-center cursor-pointer"
-                  onClick={() => setIsOpen(!isOpen)}
-                >
-                  <span
-                    className={
-                      phase ? "text-themison-text" : "text-themison-gray"
-                    }
-                  >
-                    {phase || "Select phase for your study"}
-                  </span>
-                  <ChevronDown className="h-5 w-5 text-themison-gray" />
-                </div>
-
-                {isOpen && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg">
-                    <ul className="py-1">
-                      {phases.map((p) => (
-                        <li
-                          key={p}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            setPhase(p);
-                            setIsOpen(false);
-                          }}
-                        >
-                          {p}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
             </div>
 
             <button
