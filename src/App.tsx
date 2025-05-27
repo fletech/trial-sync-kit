@@ -4,6 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { isUserLoggedIn, isOnboardingCompleted } from "@/services/userService";
+import storage from "@/services/storage";
+
+import { DevTools } from "@/components/DevTools";
 
 // Pages
 import Index from "./pages/Index";
@@ -25,6 +28,9 @@ import { OnboardingCompletePage } from "./pages/onboarding/OnboardingCompletePag
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { TaskManagementPage } from "./pages/taskManagement/TaskManagementPage";
 import TrialsPage from "./pages/TrialsPage";
+import OrganizationPage from "./pages/OrganizationPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import IntegrationsPage from "./pages/IntegrationsPage";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +58,11 @@ const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/onboarding/step1" replace />;
   }
 
+  // Initialize user data if this is their first time accessing the dashboard
+  if (!storage.isUserInitialized()) {
+    storage.initializeNewUser();
+  }
+
   return <>{children}</>;
 };
 
@@ -60,6 +71,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <DevTools />
       <BrowserRouter>
         <Routes>
           {/* Landing Page */}
@@ -129,6 +141,30 @@ const App = () => (
             element={
               <OnboardingCheck>
                 <TrialsPage />
+              </OnboardingCheck>
+            }
+          />
+          <Route
+            path="/organisation"
+            element={
+              <OnboardingCheck>
+                <OrganizationPage />
+              </OnboardingCheck>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <OnboardingCheck>
+                <NotificationsPage />
+              </OnboardingCheck>
+            }
+          />
+          <Route
+            path="/integrations"
+            element={
+              <OnboardingCheck>
+                <IntegrationsPage />
               </OnboardingCheck>
             }
           />

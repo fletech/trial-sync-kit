@@ -17,16 +17,19 @@ import {
 import { getUser, logout } from "@/services/userService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface NavItemProps {
   to: string;
   icon: React.ReactNode;
   label: string;
+  target?: string;
 }
 
-const NavItem = ({ to, icon, label }: NavItemProps) => (
+const NavItem = ({ to, icon, label, target }: NavItemProps) => (
   <NavLink
     to={to}
+    target={target}
     className={({ isActive }) => `
       flex items-center px-4 py-3 text-sm font-medium rounded-md
       ${
@@ -40,6 +43,43 @@ const NavItem = ({ to, icon, label }: NavItemProps) => (
     <span>{label}</span>
   </NavLink>
 );
+
+const NotificationsNavItem = ({ open }: { open: boolean }) => {
+  const { unreadCount } = useNotifications();
+
+  return (
+    <NavLink
+      to="/notifications"
+      className={({ isActive }) => `
+        flex items-center px-4 py-3 text-sm font-medium rounded-md relative
+        ${
+          isActive
+            ? "bg-[#E9ECEF] text-themison-text"
+            : "text-themison-gray hover:bg-gray-100"
+        }
+      `}
+    >
+      <span className="mr-3">
+        <Bell className="h-5 w-5" />
+      </span>
+      {open && (
+        <span className="relative">
+          Notifications
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-6 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </span>
+      )}
+      {!open && unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
+      )}
+    </NavLink>
+  );
+};
 
 interface SidebarProps {
   open: boolean;
@@ -78,6 +118,23 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
     navigate("/login");
   };
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (e.altKey) {
+      e.preventDefault();
+      (window as any).devToolsEnabled = !(window as any).devToolsEnabled;
+      toast({
+        title: (window as any).devToolsEnabled
+          ? "Dev Tools Enabled"
+          : "Dev Tools Disabled",
+        description: (window as any).devToolsEnabled
+          ? "Dev tools are now visible"
+          : "Dev tools are now hidden",
+      });
+      // Force re-render by triggering a state change
+      setUserData({ ...userData });
+    }
+  };
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -109,9 +166,11 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
           {/* Header */}
           <div className="p-4 border-b flex items-center justify-between">
             <h1
-              className={`text-xl font-bold text-primary ${
+              className={`text-xl font-bold text-primary cursor-pointer select-none ${
                 !open && "lg:hidden"
               }`}
+              onClick={handleLogoClick}
+              title="Hold Option/Alt and click to toggle dev tools"
             >
               THEMISON
             </h1>
@@ -158,11 +217,7 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
                 icon={<Users className="h-5 w-5" />}
                 label={open ? "Organisation" : ""}
               />
-              <NavItem
-                to="/notifications"
-                icon={<Bell className="h-5 w-5" />}
-                label={open ? "Notifications" : ""}
-              />
+              <NotificationsNavItem open={open} />
               <NavItem
                 to="/integrations"
                 icon={<ExternalLink className="h-5 w-5" />}
@@ -179,7 +234,8 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
             </div>
             <nav className="space-y-1">
               <NavItem
-                to="/help"
+                to="https://www.themison.com/#features"
+                target="_blank"
                 icon={<HelpCircle className="h-5 w-5" />}
                 label={open ? "Help" : ""}
               />

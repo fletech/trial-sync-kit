@@ -25,12 +25,17 @@ function groupTasksByColumn(tasks, columns) {
 }
 
 export const KanbanBoard = ({ columns }) => {
-  const { tasks } = useTasks();
+  const { tasks, setTasks } = useTasks();
   const [columnTasks, setColumnTasks] = useState(() =>
     groupTasksByColumn(tasks, columns)
   );
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [overColId, setOverColId] = useState<string | null>(null);
+
+  // Update columnTasks when tasks change
+  React.useEffect(() => {
+    setColumnTasks(groupTasksByColumn(tasks, columns));
+  }, [tasks, columns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -164,14 +169,29 @@ export const KanbanBoard = ({ columns }) => {
         }
 
         const taskToMove = columnTasks[sourceColId][activeTaskIndex];
-        setColumnTasks((prev) => {
-          if (sourceColId === destColId) {
-            // REORDENAR dentro de la misma columna
+
+        // Update tasks and persist to localStorage
+        let updatedTasks = [...tasks];
+
+        if (sourceColId === destColId) {
+          // REORDENAR dentro de la misma columna - no need to update tasks array order for now
+          // Just update the local state for visual feedback
+          setColumnTasks((prev) => {
             const oldTasks = prev[sourceColId];
             const newTasks = arrayMove(oldTasks, activeTaskIndex, destIdx);
             return { ...prev, [sourceColId]: newTasks };
-          } else {
-            // MOVER entre columnas
+          });
+        } else {
+          // MOVER entre columnas - update the task's columnId
+          updatedTasks = tasks.map((task) =>
+            task.id === activeId ? { ...task, columnId: destColId } : task
+          );
+
+          // Save to localStorage
+          setTasks(updatedTasks);
+
+          // Update local state
+          setColumnTasks((prev) => {
             const newSource = prev[sourceColId].filter(
               (t) => t.id !== activeId
             );
@@ -180,8 +200,8 @@ export const KanbanBoard = ({ columns }) => {
               { ...taskToMove, columnId: destColId },
             ];
             return { ...prev, [sourceColId]: newSource, [destColId]: newDest };
-          }
-        });
+          });
+        }
       }}
       onDragCancel={() => {
         console.log("[onDragCancel]");

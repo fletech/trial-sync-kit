@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState } from "react";
-import { tasks as initialTasks } from "../mocks/kanbanData";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import storage from "@/services/storage";
 
 interface Task {
   id: string;
@@ -30,16 +30,32 @@ interface TaskContextType {
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider = ({ children }) => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    // Load tasks
+    loadTasks();
+  }, []);
+
+  const loadTasks = () => {
+    const data = storage.getTasks();
+    setTasks(data);
+  };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, ...updates } : task))
-    );
+    const updatedTask = storage.updateTask(id, updates);
+    if (updatedTask) {
+      loadTasks(); // Reload tasks from storage
+    }
+  };
+
+  const saveTasks = (newTasks: Task[]) => {
+    storage.saveTasks(newTasks);
+    setTasks(newTasks);
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, setTasks, updateTask }}>
+    <TaskContext.Provider value={{ tasks, setTasks: saveTasks, updateTask }}>
       {children}
     </TaskContext.Provider>
   );

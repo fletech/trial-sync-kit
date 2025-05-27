@@ -7,6 +7,7 @@ import {
   updateOnboardingStep,
   getOnboardingStatus,
 } from "@/services/userService";
+import storage from "@/services/storage";
 
 interface TeamMember {
   email: string;
@@ -56,17 +57,85 @@ export const StepThreePage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Initialize localStorage if not already done
+    if (!storage.isUserInitialized()) {
+      storage.initializeNewUser();
+    }
+
     // Validate emails
     const validMembers = members.filter((m) => m.email.trim() !== "");
+
+    // Create the first trial from onboarding study info
+    if (onboardingStatus?.studyInfo) {
+      const { name, location, sponsor, phase } = onboardingStatus.studyInfo;
+
+      const firstTrial = {
+        name: name,
+        description: `Clinical trial created during onboarding setup. This study focuses on ${phase.toLowerCase()} research conducted in ${location}.`,
+        status: "Planning",
+        location: location,
+        progress: 0,
+        upcoming: "Complete study setup and begin recruitment",
+        pendingTask: "Finalize protocol and regulatory approvals",
+        phase: phase,
+        image: "",
+        isNew: true,
+        sponsor: sponsor,
+        piContact: "Principal Investigator",
+        studyStart: new Date().toLocaleDateString("en-GB"),
+        estimatedCloseOut: new Date(
+          Date.now() + 365 * 24 * 60 * 60 * 1000
+        ).toLocaleDateString("en-GB"),
+      };
+
+      // Save the trial to localStorage
+      storage.saveTrial(firstTrial);
+
+      // Create a notification for the new trial
+      storage.saveNotification({
+        type: "trial_update",
+        title: "Welcome to THEMISON!",
+        message: `Your first trial "${name}" has been created successfully. You can now start managing your clinical research.`,
+      });
+    }
+
+    // Save team members to localStorage if any
+    if (validMembers.length > 0) {
+      validMembers.forEach((member) => {
+        const teamMember = {
+          name: member.email.split("@")[0], // Use email prefix as name
+          email: member.email,
+          role: member.role.toLowerCase(),
+          status: "active",
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            member.email.split("@")[0]
+          )}&background=5B6CFF&color=fff`,
+        };
+        storage.saveTeamMember(teamMember);
+      });
+
+      // Create notification for team setup
+      storage.saveNotification({
+        type: "team_update",
+        title: "Team Members Added",
+        message: `${validMembers.length} team member(s) have been added to your organization.`,
+      });
+    }
 
     // Mark onboarding as completed
     updateOnboardingStep(3, validMembers);
 
-    // In a real app, we would send invitations via an API
+    // Show success message
     if (validMembers.length > 0) {
       toast({
-        title: "Team members invited",
-        description: `Invitations sent to ${validMembers.length} team members`,
+        title: "Setup completed successfully!",
+        description: `Your first trial and ${validMembers.length} team member(s) have been added.`,
+      });
+    } else {
+      toast({
+        title: "Setup completed successfully!",
+        description:
+          "Your first trial has been created. You can now start managing your research.",
       });
     }
 

@@ -32,12 +32,14 @@ export const DashboardPage = () => {
   return (
     <DashboardLayout>
       <div className="mb-10">
-        <h1 className="text-4xl font-bold mb-2 tracking-tight text-gray-900">
-          Welcome to Themison
-        </h1>
-        <p className="text-themison-gray text-lg mb-6">
-          Quick access to your most important actions.
-        </p>
+        <div>
+          <h1 className="text-4xl font-bold mb-2 tracking-tight text-gray-900">
+            Welcome to Themison
+          </h1>
+          <p className="text-themison-gray text-lg mb-6">
+            Quick access to your most important actions.
+          </p>
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {quickLinks.map((link) => (
