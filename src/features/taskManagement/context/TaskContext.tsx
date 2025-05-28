@@ -14,23 +14,45 @@ interface Task {
   endDate: string;
   parentId: string | null;
   dependencies: string[];
-  progress: number;
   users: number;
   files: number;
   comments: number;
   title: string;
+  description?: string;
+  archived?: boolean;
+  trialId?: string;
+  trialName?: string;
+}
+
+interface TaskComment {
+  id: string;
+  taskId: string;
+  author: string;
+  authorAvatar: string;
+  content: string;
+  mentions: string[];
+  createdAt: string;
+  updatedAt?: string;
 }
 
 interface TaskContextType {
   tasks: Task[];
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   updateTask: (id: string, updates: Partial<Task>) => void;
+  selectedTask: Task | null;
+  setSelectedTask: (task: Task | null) => void;
+  isTaskDrawerOpen: boolean;
+  setIsTaskDrawerOpen: (open: boolean) => void;
+  openTaskDetails: (task: Task) => void;
+  closeTaskDetails: () => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
 
   useEffect(() => {
     // Load tasks
@@ -46,6 +68,10 @@ export const TaskProvider = ({ children }) => {
     const updatedTask = storage.updateTask(id, updates);
     if (updatedTask) {
       loadTasks(); // Reload tasks from storage
+      // Update selected task if it's the one being updated
+      if (selectedTask && selectedTask.id === id) {
+        setSelectedTask(updatedTask);
+      }
     }
   };
 
@@ -54,8 +80,30 @@ export const TaskProvider = ({ children }) => {
     setTasks(newTasks);
   };
 
+  const openTaskDetails = (task: Task) => {
+    setSelectedTask(task);
+    setIsTaskDrawerOpen(true);
+  };
+
+  const closeTaskDetails = () => {
+    setIsTaskDrawerOpen(false);
+    setSelectedTask(null);
+  };
+
   return (
-    <TaskContext.Provider value={{ tasks, setTasks: saveTasks, updateTask }}>
+    <TaskContext.Provider
+      value={{
+        tasks,
+        setTasks: saveTasks,
+        updateTask,
+        selectedTask,
+        setSelectedTask,
+        isTaskDrawerOpen,
+        setIsTaskDrawerOpen,
+        openTaskDetails,
+        closeTaskDetails,
+      }}
+    >
       {children}
     </TaskContext.Provider>
   );
@@ -66,3 +114,5 @@ export const useTasks = () => {
   if (!context) throw new Error("useTasks must be used within a TaskProvider");
   return context;
 };
+
+export type { Task, TaskComment };

@@ -175,7 +175,10 @@ const storage = {
   },
   saveTask: (task) => {
     const tasks = storage.getTasks();
-    const newTask = { ...task, id: Date.now().toString() };
+    // Only assign ID if task doesn't have one, and make it more unique
+    const taskId =
+      task.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newTask = { ...task, id: taskId };
     tasks.push(newTask);
     localStorage.setItem("tasks", JSON.stringify(tasks));
     return newTask;
@@ -184,6 +187,100 @@ const storage = {
     const tasks = storage.getTasks();
     const filteredTasks = tasks.filter((task) => task.id !== id);
     localStorage.setItem("tasks", JSON.stringify(filteredTasks));
+    return true;
+  },
+
+  // Task Comments
+  getTaskComments: (taskId) => {
+    const comments = JSON.parse(localStorage.getItem("taskComments") || "[]");
+    const filtered = comments.filter((comment) => comment.taskId === taskId);
+
+    return filtered;
+  },
+
+  // Debug function to check comment integrity
+  debugTaskComments: () => {
+    const allComments = JSON.parse(
+      localStorage.getItem("taskComments") || "[]"
+    );
+    const commentsByTask = {};
+
+    allComments.forEach((comment) => {
+      if (!commentsByTask[comment.taskId]) {
+        commentsByTask[comment.taskId] = [];
+      }
+      commentsByTask[comment.taskId].push(comment);
+    });
+
+    console.log("[Storage Debug] Comments by task:", commentsByTask);
+    return commentsByTask;
+  },
+  saveTaskComment: (comment) => {
+    const comments = JSON.parse(localStorage.getItem("taskComments") || "[]");
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newComment = {
+      ...comment,
+      id: uniqueId,
+      createdAt: new Date().toISOString(),
+    };
+
+    comments.push(newComment);
+    localStorage.setItem("taskComments", JSON.stringify(comments));
+
+    // Emit custom event for same-tab updates
+    window.dispatchEvent(new CustomEvent("taskCommentsUpdated"));
+
+    return newComment;
+  },
+  updateTaskComment: (id, updatedComment) => {
+    const comments = JSON.parse(localStorage.getItem("taskComments") || "[]");
+    const index = comments.findIndex((comment) => comment.id === id);
+    if (index !== -1) {
+      comments[index] = {
+        ...comments[index],
+        ...updatedComment,
+        updatedAt: new Date().toISOString(),
+      };
+      localStorage.setItem("taskComments", JSON.stringify(comments));
+      return comments[index];
+    }
+    return null;
+  },
+  deleteTaskComment: (id) => {
+    const comments = JSON.parse(localStorage.getItem("taskComments") || "[]");
+    const filteredComments = comments.filter((comment) => comment.id !== id);
+    localStorage.setItem("taskComments", JSON.stringify(filteredComments));
+    return true;
+  },
+
+  // Documents
+  getTrialDocuments: (trialId) => {
+    const documents = JSON.parse(
+      localStorage.getItem("trialDocuments") || "[]"
+    );
+    return documents.filter((doc) => doc.trialId === trialId);
+  },
+  saveTrialDocument: (trialId, document) => {
+    const documents = JSON.parse(
+      localStorage.getItem("trialDocuments") || "[]"
+    );
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newDocument = {
+      ...document,
+      id: uniqueId,
+      trialId,
+      uploadedAt: new Date().toISOString(),
+    };
+    documents.push(newDocument);
+    localStorage.setItem("trialDocuments", JSON.stringify(documents));
+    return newDocument;
+  },
+  deleteTrialDocument: (id) => {
+    const documents = JSON.parse(
+      localStorage.getItem("trialDocuments") || "[]"
+    );
+    const filteredDocuments = documents.filter((doc) => doc.id !== id);
+    localStorage.setItem("trialDocuments", JSON.stringify(filteredDocuments));
     return true;
   },
 
@@ -265,11 +362,47 @@ const storage = {
         },
       ];
 
+      // Sample documents for demonstration
+      const sampleDocuments = [
+        {
+          id: `${Date.now()}-1`,
+          trialId: "demo-trial", // This will be updated when trials are created
+          name: "OPERA Study protocol.pdf",
+          size: 2456789,
+          type: "application/pdf",
+          uploadedAt: new Date(
+            Date.now() - 7 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 7 days ago
+        },
+        {
+          id: `${Date.now()}-2`,
+          trialId: "demo-trial",
+          name: "Protocol Amendment v2.1.pdf",
+          size: 1234567,
+          type: "application/pdf",
+          uploadedAt: new Date(
+            Date.now() - 3 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 3 days ago
+        },
+        {
+          id: `${Date.now()}-3`,
+          trialId: "demo-trial",
+          name: "Informed Consent Form.pdf",
+          size: 987654,
+          type: "application/pdf",
+          uploadedAt: new Date(
+            Date.now() - 1 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 1 day ago
+        },
+      ];
+
       localStorage.setItem("trials", JSON.stringify([]));
       localStorage.setItem("team", JSON.stringify([]));
       localStorage.setItem("notifications", JSON.stringify([]));
       localStorage.setItem("integrations", JSON.stringify(defaultIntegrations));
       localStorage.setItem("tasks", JSON.stringify([]));
+      localStorage.setItem("taskComments", JSON.stringify([]));
+      localStorage.setItem("trialDocuments", JSON.stringify(sampleDocuments));
 
       // Mark as initialized
       localStorage.setItem("themison_initialized", "true");
@@ -351,7 +484,15 @@ const storage = {
     localStorage.removeItem("notifications");
     localStorage.removeItem("integrations");
     localStorage.removeItem("tasks");
+    localStorage.removeItem("taskComments");
+    localStorage.removeItem("trialDocuments");
     localStorage.removeItem("themison_initialized");
+  },
+
+  // Clear only task-related data
+  clearTaskData: () => {
+    localStorage.removeItem("tasks");
+    localStorage.removeItem("taskComments");
   },
 
   // Check if user is initialized

@@ -41,8 +41,14 @@ const processTasks = (tasks: Task[]): GanttTask[] => {
   }));
 };
 
-const FrappeGanttChart = () => {
+const FrappeGanttChart = ({
+  filteredTasks,
+}: { filteredTasks?: any[] } = {}) => {
   const { tasks } = useTasks();
+
+  // Use filtered tasks if provided, otherwise use all tasks
+  const tasksToUse = filteredTasks || tasks;
+
   const ganttContainerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +78,7 @@ const FrappeGanttChart = () => {
         }
 
         // Procesar las tareas reales
-        let ganttTasks = processTasks(tasks);
+        let ganttTasks = processTasks(tasksToUse);
 
         // Usar datos de ejemplo solo si no hay tareas reales
         if (ganttTasks.length === 0) {
@@ -145,7 +151,7 @@ const FrappeGanttChart = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [tasks]);
+  }, [tasksToUse]);
 
   return (
     <div className="flex flex-col rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">

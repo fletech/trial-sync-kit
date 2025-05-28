@@ -12,6 +12,7 @@ import { useTasks } from "../context/TaskContext";
 
 interface KanbanBoardProps {
   columns: any[];
+  filteredTasks?: any[];
 }
 
 // Utilidad para agrupar tareas por columna
@@ -24,18 +25,22 @@ function groupTasksByColumn(tasks, columns) {
   return grouped;
 }
 
-export const KanbanBoard = ({ columns }) => {
+export const KanbanBoard = ({ columns, filteredTasks }: KanbanBoardProps) => {
   const { tasks, setTasks } = useTasks();
+
+  // Use filtered tasks if provided, otherwise use all tasks
+  const tasksToUse = filteredTasks || tasks;
+
   const [columnTasks, setColumnTasks] = useState(() =>
-    groupTasksByColumn(tasks, columns)
+    groupTasksByColumn(tasksToUse, columns)
   );
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [overColId, setOverColId] = useState<string | null>(null);
 
   // Update columnTasks when tasks change
   React.useEffect(() => {
-    setColumnTasks(groupTasksByColumn(tasks, columns));
-  }, [tasks, columns]);
+    setColumnTasks(groupTasksByColumn(tasksToUse, columns));
+  }, [tasksToUse, columns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

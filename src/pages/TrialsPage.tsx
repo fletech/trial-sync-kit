@@ -10,7 +10,7 @@ import {
   Zap,
   Clock,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import storage from "@/services/storage";
 import { toast } from "sonner";
 import { notificationEvents } from "@/hooks/useNotifications";
@@ -67,10 +67,18 @@ interface Trial {
 }
 
 const trialImages = [
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1465101178521-c1a9136a3b99?auto=format&fit=crop&w=400&q=80",
+  "/trials-images/pawel-czerwinski-fRzUPSFnp04-unsplash.jpg",
+  "/trials-images/pawel-czerwinski-Tyg0rVhOTrE-unsplash.jpg",
+  "/trials-images/laura-vinck-Hyu76loQLdk-unsplash.jpg",
+  "/trials-images/pawel-czerwinski-Lki74Jj7H-U-unsplash.jpg",
+  "/trials-images/pawel-czerwinski-tMbQpdguDVQ-unsplash.jpg",
+  "/trials-images/daniel-olah-VS_kFx4yF5g-unsplash.jpg",
+  "/trials-images/geordanna-cordero-5NE6mX0WVfQ-unsplash.jpg",
+  "/trials-images/bia-w-a-PO8Woh4YBD8-unsplash.jpg",
+  "/trials-images/mymind-tZCrFpSNiIQ-unsplash.jpg",
+  "/trials-images/pawel-czerwinski-ruJm3dBXCqw-unsplash.jpg",
+  "/trials-images/annie-spratt-0ZPSX_mQ3xI-unsplash.jpg",
+  "/trials-images/usgs-hoS3dzgpHzw-unsplash.jpg",
 ];
 
 export const TrialsPage = () => {
@@ -97,6 +105,7 @@ export const TrialsPage = () => {
   });
 
   const { selectedTrial, setSelectedTrial, isTrialView } = useTrialContext();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Load trials from localStorage only
@@ -108,20 +117,113 @@ export const TrialsPage = () => {
     setTrials(data);
   };
 
+  // Function to get the next available image for a new trial
+  const getNextTrialImage = () => {
+    const existingTrials = storage.getTrials();
+    const usedImages = existingTrials
+      .map((trial) => trial.image)
+      .filter(Boolean);
+
+    // Find the first image that hasn't been used yet
+    const availableImage = trialImages.find(
+      (image) => !usedImages.includes(image)
+    );
+
+    // If all images are used, start over with the first one
+    return availableImage || trialImages[0];
+  };
+
   const handleCreateTrial = () => {
     if (!newTrial.name || !newTrial.description || !newTrial.location) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
+    // Set default values for upcoming and pending tasks if empty
+    const upcomingTask = newTrial.upcoming.trim() || "Upload protocols";
+    const pendingTask = newTrial.pendingTask.trim() || "Assign team members";
+
     const trial = {
       ...newTrial,
+      upcoming: upcomingTask,
+      pendingTask: pendingTask,
       progress: 0,
-      image: "",
+      image: getNextTrialImage(),
       isNew: true,
     };
 
-    storage.saveTrial(trial);
+    const savedTrial = storage.saveTrial(trial);
+
+    // Create tasks in Task Manager for this trial
+    if (savedTrial) {
+      const startDate = new Date();
+      const upcomingDueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const pendingDueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
+      // Create upcoming task
+      const upcomingTaskObj = {
+        columnId: "planning",
+        trial: trial.name,
+        site: trial.location,
+        priority: "Medium",
+        role: "CRA",
+        owner: "Unassigned",
+        dates: `${startDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })} - ${upcomingDueDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}`,
+        startDate: startDate.toISOString().split("T")[0],
+        endDate: upcomingDueDate.toISOString().split("T")[0],
+        parentId: null,
+        dependencies: [],
+        progress: 0,
+        users: 1,
+        files: 0,
+        comments: 0,
+        title: upcomingTask,
+        trialId: savedTrial.id,
+        trialName: trial.name,
+        category: "Protocol",
+      };
+
+      // Create pending task
+      const pendingTaskObj = {
+        columnId: "planning",
+        trial: trial.name,
+        site: trial.location,
+        priority: "High",
+        role: "CTM",
+        owner: "Unassigned",
+        dates: `${startDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })} - ${pendingDueDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}`,
+        startDate: startDate.toISOString().split("T")[0],
+        endDate: pendingDueDate.toISOString().split("T")[0],
+        parentId: null,
+        dependencies: [],
+        progress: 0,
+        users: 1,
+        files: 0,
+        comments: 0,
+        title: pendingTask,
+        trialId: savedTrial.id,
+        trialName: trial.name,
+        category: "Team Management",
+      };
+
+      // Save tasks to Task Manager
+      storage.saveTask(upcomingTaskObj);
+      storage.saveTask(pendingTaskObj);
+    }
 
     // Create notification for new trial
     storage.saveNotification({
@@ -150,13 +252,14 @@ export const TrialsPage = () => {
     notificationEvents.emit();
 
     toast.success("Trial Created", {
-      description: "New trial has been created successfully.",
+      description:
+        "New trial has been created successfully with default tasks.",
     });
   };
 
   const handleTrialClick = (trial: Trial) => {
     setSelectedTrial(trial);
-    setCurrentTrialSection("overview");
+    navigate(`/trials/${trial.id}`);
   };
 
   const filteredTrials = trials.filter((trial) => {
@@ -191,16 +294,7 @@ export const TrialsPage = () => {
     return status ? status.color : "#6b7280";
   }
 
-  // If a trial is selected, show the trial view
-  if (isTrialView && selectedTrial) {
-    return (
-      <DashboardLayout>
-        <TrialView currentSection={currentTrialSection} />
-      </DashboardLayout>
-    );
-  }
-
-  // Otherwise, show the trials list
+  // Always show the trials list since trial details are now handled by routes
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">

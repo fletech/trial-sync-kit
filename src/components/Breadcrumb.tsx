@@ -8,6 +8,22 @@ export const Breadcrumb = () => {
   const location = useLocation();
   const [currentSection, setCurrentSection] = useState("Overview");
 
+  // Function to get section from URL
+  const getSectionFromUrl = () => {
+    const path = location.pathname;
+    if (path.includes("/task-manager")) return "Task Management";
+    if (path.includes("/document-assistant")) return "Document Assistant";
+    if (path.includes("/team-roles")) return "Team & Roles";
+    if (path.includes("/notifications")) return "Notifications";
+    if (path.includes("/integrations")) return "Integrations";
+    return "Overview";
+  };
+
+  // Initialize section from URL on mount and when location changes
+  useEffect(() => {
+    setCurrentSection(getSectionFromUrl());
+  }, [location.pathname]);
+
   useEffect(() => {
     // Listen for section changes from the sidebar
     const handleSectionChange = (event: CustomEvent) => {

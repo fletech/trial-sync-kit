@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   Home,
   FileText,
@@ -128,11 +128,36 @@ export const DynamicSidebar = ({ open, onToggle }: DynamicSidebarProps) => {
     avatar: "/placeholder.svg",
     email: "",
   });
-  const [currentTrialSection, setCurrentTrialSection] = useState("overview");
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { trialId } = useParams<{ trialId: string }>();
   const { toast } = useToast();
   const { selectedTrial, isTrialView, setSelectedTrial } = useTrialContext();
+
+  // Determine current section from URL
+  const getCurrentSection = () => {
+    const path = location.pathname;
+    if (path.includes("/task-manager")) return "task-management";
+    if (path.includes("/document-assistant")) return "document-assistant";
+    if (path.includes("/team-roles")) return "team-roles";
+    if (path.includes("/notifications")) return "notifications";
+    if (path.includes("/integrations")) return "integrations";
+    return "overview";
+  };
+
+  const currentTrialSection = getCurrentSection();
+
+  // Dispatch event when trial section changes
+  useEffect(() => {
+    if (isTrialView && currentTrialSection) {
+      window.dispatchEvent(
+        new CustomEvent("trialSectionChanged", {
+          detail: { section: currentTrialSection },
+        })
+      );
+    }
+  }, [currentTrialSection, isTrialView]);
 
   useEffect(() => {
     // Get user data from localStorage
@@ -200,13 +225,31 @@ export const DynamicSidebar = ({ open, onToggle }: DynamicSidebarProps) => {
   };
 
   const handleTrialSectionClick = (section: string) => {
-    setCurrentTrialSection(section);
-    // Emit a custom event to notify the TrialView component
-    window.dispatchEvent(
-      new CustomEvent("trialSectionChanged", {
-        detail: { section },
-      })
-    );
+    if (!trialId) return;
+
+    // Navigate to the specific route based on section
+    switch (section) {
+      case "overview":
+        navigate(`/trials/${trialId}`);
+        break;
+      case "task-management":
+        navigate(`/trials/${trialId}/task-manager`);
+        break;
+      case "document-assistant":
+        navigate(`/trials/${trialId}/document-assistant`);
+        break;
+      case "team-roles":
+        navigate(`/trials/${trialId}/team-roles`);
+        break;
+      case "notifications":
+        navigate(`/trials/${trialId}/notifications`);
+        break;
+      case "integrations":
+        navigate(`/trials/${trialId}/integrations`);
+        break;
+      default:
+        navigate(`/trials/${trialId}`);
+    }
   };
 
   // Regular sidebar navigation items

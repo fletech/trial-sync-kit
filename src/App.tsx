@@ -33,6 +33,7 @@ import TrialsPage from "./pages/TrialsPage";
 import OrganizationPage from "./pages/OrganizationPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import IntegrationsPage from "./pages/IntegrationsPage";
+import TrialDetailPage from "./pages/TrialDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -178,6 +179,56 @@ const App = () => {
 
               {/* Task Management Route */}
               <Route path="/task-manager" element={<TaskManagementPage />} />
+
+              {/* Trial Detail Routes */}
+              <Route
+                path="/trials/:trialId"
+                element={
+                  <OnboardingCheck>
+                    <TrialDetailPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/trials/:trialId/task-manager"
+                element={
+                  <OnboardingCheck>
+                    <TaskManagementPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/trials/:trialId/document-assistant"
+                element={
+                  <OnboardingCheck>
+                    <TrialDetailPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/trials/:trialId/team-roles"
+                element={
+                  <OnboardingCheck>
+                    <TrialDetailPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/trials/:trialId/notifications"
+                element={
+                  <OnboardingCheck>
+                    <TrialDetailPage />
+                  </OnboardingCheck>
+                }
+              />
+              <Route
+                path="/trials/:trialId/integrations"
+                element={
+                  <OnboardingCheck>
+                    <TrialDetailPage />
+                  </OnboardingCheck>
+                }
+              />
 
               {/* Catch-all Route */}
               <Route path="*" element={<NotFound />} />

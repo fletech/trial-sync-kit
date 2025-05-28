@@ -67,7 +67,7 @@ export const TrialCard = ({ trial, onClick, getStage }: TrialCardProps) => {
       </div>
       {/* Contenido */}
       <div className="flex-1 flex flex-col p-5">
-        <h2 className="text-base font-black mb-1 truncate text-heading">
+        <h2 className="text-base font-bold mb-1 truncate text-heading">
           {trial.name}
         </h2>
         <p className="text-gray-500 text-sm mb-4 line-clamp-2">

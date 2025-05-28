@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useTrialContext } from "@/contexts/TrialContext";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { TaskProvider } from "@/features/taskManagement/context/TaskContext";
+import { DocumentUpload } from "@/components/DocumentUpload";
+import { DocumentAssistantInterface } from "@/components/DocumentAssistantInterface";
+import storage from "@/services/storage";
 
 // Trial section components (we'll create these)
 const TrialOverview = ({ trial }: { trial: any }) => {
@@ -254,37 +258,95 @@ const TrialOverview = ({ trial }: { trial: any }) => {
   );
 };
 
-const TrialTaskManagement = () => (
-  <div>
-    <h1 className="text-3xl font-semibold mb-1 text-gray-900">
-      Task Management
-    </h1>
-    <p className="text-themison-gray text-base mb-6">
-      Manage trial tasks and workflows
-    </p>
-    <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-      <p className="text-gray-500">
-        Task Management interface will be implemented here
-      </p>
-    </div>
-  </div>
-);
+const TrialTaskManagement = () => {
+  return (
+    <TaskProvider>
+      <div>
+        <h1 className="text-3xl font-semibold mb-1 text-gray-900">
+          Task Management
+        </h1>
+        <p className="text-themison-gray text-base mb-6">
+          Manage trial tasks and workflows
+        </p>
+        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+          <p className="text-gray-500">
+            Task Management interface will be implemented here.
+            <br />
+            <span className="text-sm">
+              Navigate to the dedicated task manager using the sidebar to see
+              filtered tasks for this trial.
+            </span>
+          </p>
+        </div>
+      </div>
+    </TaskProvider>
+  );
+};
 
-const TrialDocumentAssistant = () => (
-  <div>
-    <h1 className="text-3xl font-semibold mb-1 text-gray-900">
-      Document Assistant
-    </h1>
-    <p className="text-themison-gray text-base mb-6">
-      AI-powered document management and search
-    </p>
-    <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-      <p className="text-gray-500">
-        Document Assistant interface will be implemented here
-      </p>
-    </div>
-  </div>
-);
+const TrialDocumentAssistant = () => {
+  const { selectedTrial } = useTrialContext();
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showUpload, setShowUpload] = useState(false);
+
+  useEffect(() => {
+    if (selectedTrial) {
+      const trialDocuments = storage.getTrialDocuments(selectedTrial.id);
+      setDocuments(trialDocuments);
+      setIsLoading(false);
+    }
+  }, [selectedTrial]);
+
+  const handleUploadComplete = (document: any) => {
+    if (selectedTrial) {
+      const savedDocument = storage.saveTrialDocument(
+        selectedTrial.id,
+        document
+      );
+      setDocuments([...documents, savedDocument]);
+      setShowUpload(false); // Hide upload interface after successful upload
+    }
+  };
+
+  const handleRemoveDocument = (documentId: string) => {
+    storage.deleteTrialDocument(documentId);
+    setDocuments(documents.filter((doc) => doc.id !== documentId));
+  };
+
+  const handleUploadDocument = () => {
+    setShowUpload(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If showing upload interface
+  if (showUpload || documents.length === 0) {
+    return (
+      <DocumentUpload
+        onUploadComplete={handleUploadComplete}
+        trialName={selectedTrial?.name || "Study"}
+      />
+    );
+  }
+
+  // If documents exist, show the assistant interface with all documents
+  return (
+    <DocumentAssistantInterface
+      documents={documents}
+      trialName={selectedTrial?.name || "Study"}
+      onRemoveDocument={handleRemoveDocument}
+      onUploadDocument={handleUploadDocument}
+    />
+  );
+};
 
 const TrialTeamRoles = () => (
   <div>
