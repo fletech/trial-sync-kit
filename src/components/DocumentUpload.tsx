@@ -1,8 +1,11 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { X, FileText, ArrowRight, CheckSquare, BarChart3 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getUser } from "@/services/userService";
+import { FileUploadArea } from "./upload/FileUploadArea";
+import { UploadedFileDisplay } from "./upload/UploadedFileDisplay";
+import { PathSelectionCards } from "./upload/PathSelectionCards";
 
 interface DocumentUploadProps {
   onUploadComplete: (document: any) => void;
@@ -20,7 +23,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get user data for dynamic greeting
   const user = getUser();
@@ -41,13 +43,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setIsDragOver(false);
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleFileSelect(files[0]);
-    }
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
       handleFileSelect(files[0]);
     }
   };
@@ -80,9 +75,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploadProgress(0);
     setIsUploading(false);
     setUploadComplete(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const handleContinue = () => {
@@ -97,43 +89,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     }
   };
 
-  const clickToUpload = () => {
-    fileInputRef.current?.click();
+  const handlePathSelect = (path: string) => {
+    handleContinue();
   };
-
-  const truncateFileName = (fileName: string, maxLength: number = 40) => {
-    if (fileName.length <= maxLength) return fileName;
-    
-    const extension = fileName.split('.').pop();
-    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
-    const truncatedName = nameWithoutExt.substring(0, maxLength - extension!.length - 7); // 7 for "[...]."
-    
-    return `${truncatedName}[...].${extension}`;
-  };
-
-  const pathOptions = [
-    {
-      id: "document-assistant",
-      title: "Document Assistant",
-      description: "Analyze and query your uploaded protocol",
-      icon: <FileText className="w-12 h-12 text-blue-600 mb-4" />,
-      path: "/document-assistant",
-    },
-    {
-      id: "task-manager",
-      title: "Task Management",
-      description: "Manage tasks and timelines for your trial",
-      icon: <CheckSquare className="w-12 h-12 text-green-600 mb-4" />,
-      path: "/task-manager",
-    },
-    {
-      id: "overview",
-      title: "Trial Overview",
-      description: "View comprehensive trial information",
-      icon: <BarChart3 className="w-12 h-12 text-purple-600 mb-4" />,
-      path: "",
-    },
-  ];
 
   // Standalone mode (full screen) - updated for dashboard flow
   if (standalone) {
@@ -155,104 +113,25 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             </h2>
 
             {!uploadingFile ? (
-              <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-                  isDragOver
-                    ? "border-blue-400 bg-blue-50"
-                    : "border-gray-300 bg-gray-50"
-                }`}
+              <FileUploadArea
+                isDragOver={isDragOver}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                onClick={clickToUpload}
-              >
-                <div className="text-gray-500">
-                  <p className="text-sm">Drag and drop or click to</p>
-                  <p className="text-sm">upload a new document</p>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileInputChange}
-                  accept=".pdf,.doc,.docx"
-                />
-              </div>
+                onFileSelect={handleFileSelect}
+              />
             ) : (
               <>
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-red-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {truncateFileName(uploadingFile.name)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {(uploadingFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={removeFile}
-                      className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                      aria-label="Remove file"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {isUploading && (
-                    <div className="space-y-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${Math.min(uploadProgress, 100)}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>Uploading...</span>
-                        <span>{Math.round(Math.min(uploadProgress, 100))}%</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {uploadComplete && (
-                    <div className="text-xs text-green-600 font-medium">
-                      Upload complete!
-                    </div>
-                  )}
-                </div>
+                <UploadedFileDisplay
+                  file={uploadingFile}
+                  uploadProgress={uploadProgress}
+                  isUploading={isUploading}
+                  uploadComplete={uploadComplete}
+                  onRemove={removeFile}
+                />
 
                 {uploadComplete && (
-                  <div className="mt-8">
-                    <div className="text-center mb-6">
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Great! Your protocol has been uploaded
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        Select The Feature You Want To Explore First
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 mb-6">
-                      {pathOptions.map((option) => (
-                        <div
-                          key={option.id}
-                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center hover:shadow-lg transition-shadow cursor-pointer group"
-                          onClick={handleContinue}
-                        >
-                          <div className="flex justify-center">{option.icon}</div>
-                          <h4 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                            {option.title}
-                          </h4>
-                          <p className="text-gray-600 text-xs">{option.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <PathSelectionCards onPathSelect={handlePathSelect} />
                 )}
               </>
             )}
@@ -281,76 +160,21 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           </h2>
 
           {!uploadingFile ? (
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isDragOver
-                  ? "border-blue-400 bg-blue-50"
-                  : "border-gray-300 bg-gray-50"
-              }`}
+            <FileUploadArea
+              isDragOver={isDragOver}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={clickToUpload}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="text-gray-500">
-                <p className="text-sm">Drag and drop or click to</p>
-                <p className="text-sm">upload a new document</p>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                onChange={handleFileInputChange}
-                accept=".pdf,.doc,.docx"
-              />
-            </div>
+              onFileSelect={handleFileSelect}
+            />
           ) : (
-            <div className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {truncateFileName(uploadingFile.name)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {(uploadingFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={removeFile}
-                  className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                  aria-label="Remove file"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {isUploading && (
-                <div className="space-y-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(uploadProgress, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Uploading...</span>
-                    <span>{Math.round(Math.min(uploadProgress, 100))}%</span>
-                  </div>
-                </div>
-              )}
-
-              {uploadComplete && (
-                <div className="text-xs text-green-600 font-medium">
-                  Upload complete!
-                </div>
-              )}
-            </div>
+            <UploadedFileDisplay
+              file={uploadingFile}
+              uploadProgress={uploadProgress}
+              isUploading={isUploading}
+              uploadComplete={uploadComplete}
+              onRemove={removeFile}
+            />
           )}
 
           <div className="mt-6">
