@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import storage from "@/services/storage";
 import { DocumentUpload } from "@/components/DocumentUpload";
-import { PostUploadSelection } from "@/components/PostUploadSelection";
 
 const quickLinks = [
   {
@@ -36,9 +35,7 @@ const quickLinks = [
 
 export const DashboardPage = () => {
   const [showUpload, setShowUpload] = useState(false);
-  const [showSelection, setShowSelection] = useState(false);
   const [currentTrial, setCurrentTrial] = useState(null);
-  const [uploadedDocument, setUploadedDocument] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,15 +62,9 @@ export const DashboardPage = () => {
         name: "protocol.pdf", // Always reference as protocol.pdf for AI
       });
       
-      setUploadedDocument(savedDoc);
-      setShowUpload(false);
-      setShowSelection(true);
-    }
-  };
-
-  const handlePathSelection = (path) => {
-    if (currentTrial) {
-      navigate(`/trials/${currentTrial.id}${path}`);
+      // Navigate directly to the selected path
+      const selectedPath = document.selectedPath || "/document-assistant";
+      navigate(`/trials/${currentTrial.id}${selectedPath}`);
     }
   };
 
@@ -85,18 +76,6 @@ export const DashboardPage = () => {
           onUploadComplete={handleUploadComplete}
           trialName={currentTrial.name}
           standalone={true}
-        />
-      </DashboardLayout>
-    );
-  }
-
-  // Show path selection after upload
-  if (showSelection && currentTrial) {
-    return (
-      <DashboardLayout>
-        <PostUploadSelection
-          trial={currentTrial}
-          onPathSelect={handlePathSelection}
         />
       </DashboardLayout>
     );
