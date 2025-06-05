@@ -1,6 +1,6 @@
 
-import React from "react";
-import { Search, Grid3X3, BarChart3 } from "lucide-react";
+import React, { useState } from "react";
+import { Search, Grid3X3, BarChart3, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PathOption {
@@ -17,6 +17,8 @@ interface PathSelectionCardsProps {
 export const PathSelectionCards: React.FC<PathSelectionCardsProps> = ({
   onPathSelect,
 }) => {
+  const [selectedPath, setSelectedPath] = useState<string>("/document-assistant");
+
   const pathOptions: PathOption[] = [
     {
       id: "document-assistant",
@@ -38,6 +40,10 @@ export const PathSelectionCards: React.FC<PathSelectionCardsProps> = ({
     },
   ];
 
+  const handlePathClick = (path: string) => {
+    setSelectedPath(path);
+  };
+
   return (
     <div className="mt-8 space-y-6">
       <div className="text-left">
@@ -50,8 +56,10 @@ export const PathSelectionCards: React.FC<PathSelectionCardsProps> = ({
         {pathOptions.map((option) => (
           <div
             key={option.id}
-            className="bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors min-w-[140px] h-[120px]"
-            onClick={() => onPathSelect(option.path)}
+            className={`rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors min-w-[140px] h-[120px] ${
+              selectedPath === option.path ? "bg-gray-100" : ""
+            }`}
+            onClick={() => handlePathClick(option.path)}
           >
             <div className="mb-3">
               {option.icon}
@@ -61,15 +69,6 @@ export const PathSelectionCards: React.FC<PathSelectionCardsProps> = ({
             </p>
           </div>
         ))}
-      </div>
-
-      <div className="flex justify-center">
-        <Button
-          onClick={() => onPathSelect("/document-assistant")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-base font-medium"
-        >
-          Continue →
-        </Button>
       </div>
     </div>
   );

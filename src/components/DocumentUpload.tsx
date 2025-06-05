@@ -1,8 +1,11 @@
+
 import React, { useState } from "react";
 import { getUser } from "@/services/userService";
 import { FileUploadArea } from "./upload/FileUploadArea";
 import { UploadedFileDisplay } from "./upload/UploadedFileDisplay";
 import { PathSelectionCards } from "./upload/PathSelectionCards";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 interface DocumentUploadProps {
   onUploadComplete: (document: any) => void;
@@ -20,6 +23,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [selectedPath, setSelectedPath] = useState<string>("/document-assistant");
 
   // Get user data for dynamic greeting
   const user = getUser();
@@ -87,7 +91,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   };
 
   const handlePathSelect = (path: string) => {
-    handleContinue();
+    setSelectedPath(path);
   };
 
   // Standalone mode (full screen) - updated for dashboard flow
@@ -133,6 +137,17 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               </>
             )}
           </div>
+          
+          {uploadComplete && (
+            <div className="flex justify-center mt-6">
+              <Button
+                onClick={handleContinue}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-base font-medium"
+              >
+                Continue <ArrowRight className="ml-1 h-5 w-5" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -180,6 +195,17 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             </>
           )}
         </div>
+        
+        {uploadComplete && (
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={handleContinue}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-base font-medium"
+            >
+              Continue <ArrowRight className="ml-1 h-5 w-5" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
