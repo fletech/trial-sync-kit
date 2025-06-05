@@ -97,7 +97,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   if (standalone) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-4xl w-full">
+        <div className="max-w-md w-full">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-semibold text-gray-900 mb-2">
               Hello, {userName}
@@ -107,7 +107,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Upload Document
             </h2>
@@ -149,7 +149,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           Document Assistant
         </h1>
         <p className="text-gray-600">
-          Let's start by uploading a protocol for the {trialName}
+          Let's start by uploading a protocol for {trialName}
         </p>
       </div>
 
@@ -168,29 +168,20 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               onFileSelect={handleFileSelect}
             />
           ) : (
-            <UploadedFileDisplay
-              file={uploadingFile}
-              uploadProgress={uploadProgress}
-              isUploading={isUploading}
-              uploadComplete={uploadComplete}
-              onRemove={removeFile}
-            />
-          )}
+            <>
+              <UploadedFileDisplay
+                file={uploadingFile}
+                uploadProgress={uploadProgress}
+                isUploading={isUploading}
+                uploadComplete={uploadComplete}
+                onRemove={removeFile}
+              />
 
-          <div className="mt-6">
-            <Button
-              onClick={handleContinue}
-              disabled={!uploadComplete}
-              className={`w-full ${
-                uploadComplete
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              Continue to Document Assistant
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
+              {uploadComplete && (
+                <PathSelectionCards onPathSelect={handlePathSelect} />
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ export const UploadedFileDisplay: React.FC<UploadedFileDisplayProps> = ({
 
   return (
     <div className="border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center">
             <FileText className="w-5 h-5 text-red-600" />
@@ -53,7 +53,7 @@ export const UploadedFileDisplay: React.FC<UploadedFileDisplayProps> = ({
       </div>
 
       {isUploading && (
-        <div className="space-y-2">
+        <div className="mt-3 space-y-2">
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -68,7 +68,7 @@ export const UploadedFileDisplay: React.FC<UploadedFileDisplayProps> = ({
       )}
 
       {uploadComplete && (
-        <div className="text-xs text-green-600 font-medium">
+        <div className="mt-2 text-xs text-green-600 font-medium">
           Upload complete!
         </div>
       )}
