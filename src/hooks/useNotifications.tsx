@@ -1,13 +1,12 @@
+
 import { useState, useEffect } from "react";
 import storage from "@/services/storage";
 
 // Event emitter simple para notificaciones
 class NotificationEventEmitter {
-  constructor() {
-    this.listeners = [];
-  }
+  private listeners: (() => void)[] = [];
 
-  subscribe(callback) {
+  subscribe(callback: () => void): () => void {
     this.listeners.push(callback);
     return () => {
       this.listeners = this.listeners.filter(
@@ -16,7 +15,7 @@ class NotificationEventEmitter {
     };
   }
 
-  emit() {
+  emit(): void {
     this.listeners.forEach((callback) => callback());
   }
 }
