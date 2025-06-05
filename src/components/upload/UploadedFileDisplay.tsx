@@ -17,35 +17,35 @@ export const UploadedFileDisplay: React.FC<UploadedFileDisplayProps> = ({
   uploadComplete,
   onRemove,
 }) => {
-  const truncateFileName = (fileName: string, maxLength: number = 40) => {
+  const truncateFileName = (fileName: string, maxLength: number = 30) => {
     if (fileName.length <= maxLength) return fileName;
     
     const extension = fileName.split('.').pop();
     const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
-    const truncatedName = nameWithoutExt.substring(0, maxLength - extension!.length - 7); // 7 for "[...]."
+    const truncatedName = nameWithoutExt.substring(0, maxLength - extension!.length - 7);
     
     return `${truncatedName}[...].${extension}`;
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
+    <div className="border border-gray-300 rounded-lg p-4 bg-white">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center">
-            <FileText className="w-5 h-5 text-red-600" />
+        <div className="flex items-center space-x-3 flex-1">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <FileText className="w-6 h-6 text-gray-600" />
+            </div>
+            <span className="text-xs text-gray-500 font-medium">PDF</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm text-gray-700 truncate font-medium">
               {truncateFileName(file.name)}
-            </p>
-            <p className="text-xs text-gray-500">
-              {(file.size / 1024 / 1024).toFixed(2)} MB
             </p>
           </div>
         </div>
         <button
           onClick={onRemove}
-          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded ml-4"
           aria-label="Remove file"
         >
           <X className="w-4 h-4" />
@@ -64,12 +64,6 @@ export const UploadedFileDisplay: React.FC<UploadedFileDisplayProps> = ({
             <span>Uploading...</span>
             <span>{Math.round(Math.min(uploadProgress, 100))}%</span>
           </div>
-        </div>
-      )}
-
-      {uploadComplete && (
-        <div className="mt-2 text-xs text-green-600 font-medium">
-          Upload complete!
         </div>
       )}
     </div>

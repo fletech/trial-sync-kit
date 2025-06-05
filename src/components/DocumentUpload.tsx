@@ -1,7 +1,4 @@
-
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { getUser } from "@/services/userService";
 import { FileUploadArea } from "./upload/FileUploadArea";
 import { UploadedFileDisplay } from "./upload/UploadedFileDisplay";
@@ -26,7 +23,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
   // Get user data for dynamic greeting
   const user = getUser();
-  const userName = user?.name || "User";
+  const userName = user?.name || "Terry";
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -97,18 +94,18 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   if (standalone) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full">
+        <div className="max-w-lg w-full">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+            <h1 className="text-4xl font-medium text-gray-800 mb-4">
               Hello, {userName}
             </h1>
-            <p className="text-gray-600">
-              Let's start by uploading a protocol for {trialName}
+            <p className="text-gray-600 text-lg">
+              Let's start by uploading a protocol for the {trialName}
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-8">
+            <h2 className="text-xl font-medium text-gray-800 mb-6">
               Upload Document
             </h2>
 
