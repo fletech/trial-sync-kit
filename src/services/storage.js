@@ -1,3 +1,4 @@
+
 // services/storage.js - UN SOLO SERVICE SIMPLE
 const storage = {
   // Trials
@@ -294,7 +295,7 @@ const storage = {
     const needsIntegrations = integrations.length === 0;
 
     if (isFirstTime) {
-      // Initialize empty arrays for new users - trials will be created during onboarding
+      // Initialize empty arrays for new users - trials and documents will be created manually
 
       // Default integrations available for connection
       const defaultIntegrations = [
@@ -362,47 +363,13 @@ const storage = {
         },
       ];
 
-      // Sample documents for demonstration
-      const sampleDocuments = [
-        {
-          id: `${Date.now()}-1`,
-          trialId: "demo-trial", // This will be updated when trials are created
-          name: "OPERA Study protocol.pdf",
-          size: 2456789,
-          type: "application/pdf",
-          uploadedAt: new Date(
-            Date.now() - 7 * 24 * 60 * 60 * 1000
-          ).toISOString(), // 7 days ago
-        },
-        {
-          id: `${Date.now()}-2`,
-          trialId: "demo-trial",
-          name: "Protocol Amendment v2.1.pdf",
-          size: 1234567,
-          type: "application/pdf",
-          uploadedAt: new Date(
-            Date.now() - 3 * 24 * 60 * 60 * 1000
-          ).toISOString(), // 3 days ago
-        },
-        {
-          id: `${Date.now()}-3`,
-          trialId: "demo-trial",
-          name: "Informed Consent Form.pdf",
-          size: 987654,
-          type: "application/pdf",
-          uploadedAt: new Date(
-            Date.now() - 1 * 24 * 60 * 60 * 1000
-          ).toISOString(), // 1 day ago
-        },
-      ];
-
       localStorage.setItem("trials", JSON.stringify([]));
       localStorage.setItem("team", JSON.stringify([]));
       localStorage.setItem("notifications", JSON.stringify([]));
       localStorage.setItem("integrations", JSON.stringify(defaultIntegrations));
       localStorage.setItem("tasks", JSON.stringify([]));
       localStorage.setItem("taskComments", JSON.stringify([]));
-      localStorage.setItem("trialDocuments", JSON.stringify(sampleDocuments));
+      localStorage.setItem("trialDocuments", JSON.stringify([])); // Start with empty documents
 
       // Mark as initialized
       localStorage.setItem("themison_initialized", "true");

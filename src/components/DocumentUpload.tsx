@@ -2,6 +2,7 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { X, FileText, ArrowRight } from "lucide-react";
+import { getUser } from "@/services/userService";
 
 interface DocumentUploadProps {
   onUploadComplete: (document: any) => void;
@@ -20,6 +21,10 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Get user data for dynamic greeting
+  const user = getUser();
+  const userName = user?.name || "User";
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -103,7 +108,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-              Hello, Terry
+              Hello, {userName}
             </h1>
             <p className="text-gray-600">
               Let's start by uploading a protocol for {trialName}
@@ -143,16 +148,22 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               <div className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-red-600" />
+                    <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-red-600" />
                     </div>
-                    <span className="text-sm font-medium text-gray-900">
-                      {uploadingFile.name}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {uploadingFile.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(uploadingFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={removeFile}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                    aria-label="Remove file"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -174,7 +185,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 )}
 
                 {uploadComplete && (
-                  <div className="text-xs text-gray-500">Done!</div>
+                  <div className="text-xs text-green-600 font-medium">
+                    Upload complete!
+                  </div>
                 )}
               </div>
             )}
@@ -246,16 +259,22 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-red-600" />
+                  <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-red-600" />
                   </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {uploadingFile.name}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {uploadingFile.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(uploadingFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={removeFile}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                  aria-label="Remove file"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -277,7 +296,9 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               )}
 
               {uploadComplete && (
-                <div className="text-xs text-gray-500">Done!</div>
+                <div className="text-xs text-green-600 font-medium">
+                  Upload complete!
+                </div>
               )}
             </div>
           )}

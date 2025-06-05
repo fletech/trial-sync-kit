@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { OnboardingLayout } from "@/features/onboarding/components/OnboardingLayout";
@@ -111,21 +112,7 @@ export const StepThreePage = () => {
       // Save the trial to localStorage
       const savedTrial = storage.saveTrial(firstTrial);
 
-      // Associate sample documents with the new trial
-      if (savedTrial) {
-        const existingDocuments = storage.getTrialDocuments("demo-trial");
-        existingDocuments.forEach((doc) => {
-          // Update the trialId to the actual trial ID
-          const updatedDoc = { ...doc, trialId: savedTrial.id };
-          storage.deleteTrialDocument(doc.id); // Remove old document
-          storage.saveTrialDocument(savedTrial.id, {
-            name: updatedDoc.name,
-            size: updatedDoc.size,
-            type: updatedDoc.type,
-            uploadedAt: updatedDoc.uploadedAt,
-          });
-        });
-      }
+      // NOTE: Removed automatic document creation - users will upload manually
 
       // Create tasks in Task Manager for this trial
       if (savedTrial) {
