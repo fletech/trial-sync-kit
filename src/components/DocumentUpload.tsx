@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { X, FileText, ArrowRight } from "lucide-react";
@@ -95,7 +96,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     fileInputRef.current?.click();
   };
 
-  // Standalone mode (full screen)
+  // Standalone mode (full screen) - updated for dashboard flow
   if (standalone) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -105,7 +106,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               Hello, Terry
             </h1>
             <p className="text-gray-600">
-              Let's start by uploading a protocol for the {trialName}
+              Let's start by uploading a protocol for {trialName}
             </p>
           </div>
 
@@ -116,7 +117,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
             {!uploadingFile ? (
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
                   isDragOver
                     ? "border-blue-400 bg-blue-50"
                     : "border-gray-300 bg-gray-50"
@@ -125,7 +126,6 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={clickToUpload}
-                style={{ cursor: "pointer" }}
               >
                 <div className="text-gray-500">
                   <p className="text-sm">Drag and drop or click to</p>
@@ -189,7 +189,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                Continue to Document Assistant
+                Continue
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>

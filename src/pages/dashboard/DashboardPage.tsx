@@ -1,5 +1,11 @@
+
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { FlaskConical, CheckSquare, Users, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import storage from "@/services/storage";
+import { DocumentUpload } from "@/components/DocumentUpload";
+import { PostUploadSelection } from "@/components/PostUploadSelection";
 
 const quickLinks = [
   {
@@ -29,6 +35,74 @@ const quickLinks = [
 ];
 
 export const DashboardPage = () => {
+  const [showUpload, setShowUpload] = useState(false);
+  const [showSelection, setShowSelection] = useState(false);
+  const [currentTrial, setCurrentTrial] = useState(null);
+  const [uploadedDocument, setUploadedDocument] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user needs to upload documents
+    const trials = storage.getTrials();
+    if (trials.length > 0) {
+      const latestTrial = trials[trials.length - 1];
+      const trialDocuments = storage.getTrialDocuments(latestTrial.id);
+      
+      // If latest trial has no documents, show upload UI
+      if (trialDocuments.length === 0) {
+        setCurrentTrial(latestTrial);
+        setShowUpload(true);
+      }
+    }
+  }, []);
+
+  const handleUploadComplete = (document) => {
+    if (currentTrial) {
+      // Save document with reference as "protocol.pdf"
+      const savedDoc = storage.saveTrialDocument(currentTrial.id, {
+        ...document,
+        displayName: document.name,
+        name: "protocol.pdf", // Always reference as protocol.pdf for AI
+      });
+      
+      setUploadedDocument(savedDoc);
+      setShowUpload(false);
+      setShowSelection(true);
+    }
+  };
+
+  const handlePathSelection = (path) => {
+    if (currentTrial) {
+      navigate(`/trials/${currentTrial.id}${path}`);
+    }
+  };
+
+  // Show upload UI if user needs to upload documents
+  if (showUpload && currentTrial) {
+    return (
+      <DashboardLayout>
+        <DocumentUpload
+          onUploadComplete={handleUploadComplete}
+          trialName={currentTrial.name}
+          standalone={true}
+        />
+      </DashboardLayout>
+    );
+  }
+
+  // Show path selection after upload
+  if (showSelection && currentTrial) {
+    return (
+      <DashboardLayout>
+        <PostUploadSelection
+          trial={currentTrial}
+          onPathSelect={handlePathSelection}
+        />
+      </DashboardLayout>
+    );
+  }
+
+  // Show regular dashboard
   return (
     <DashboardLayout>
       <div className="mb-10">
