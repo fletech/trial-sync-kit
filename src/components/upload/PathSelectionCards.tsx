@@ -35,7 +35,7 @@ export const PathSelectionCards: React.FC<PathSelectionCardsProps> = ({
       id: "overview",
       title: "Trial Overview",
       icon: <BarChart3 className="w-8 h-8 text-gray-700" />,
-      path: "",
+      path: "/",
     },
   ];
 
