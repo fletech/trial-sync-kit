@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { getUser } from "@/services/userService";
 import { FileUploadArea } from "./upload/FileUploadArea";
@@ -85,6 +84,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         size: uploadingFile.size,
         type: uploadingFile.type,
         lastModified: uploadingFile.lastModified,
+        selectedPath: selectedPath, // Pass the selected path
       };
       onUploadComplete(document);
     }
@@ -132,7 +132,10 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                 />
 
                 {uploadComplete && (
-                  <PathSelectionCards onPathSelect={handlePathSelect} />
+                  <PathSelectionCards 
+                    onPathSelect={handlePathSelect} 
+                    selectedPath={selectedPath}
+                  />
                 )}
               </>
             )}
@@ -190,7 +193,10 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               />
 
               {uploadComplete && (
-                <PathSelectionCards onPathSelect={handlePathSelect} />
+                <PathSelectionCards 
+                  onPathSelect={handlePathSelect} 
+                  selectedPath={selectedPath}
+                />
               )}
             </>
           )}

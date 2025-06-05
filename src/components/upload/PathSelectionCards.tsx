@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
-import { Search, Grid3X3, BarChart3, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, Grid3X3, BarChart3 } from "lucide-react";
 
 interface PathOption {
   id: string;
@@ -12,13 +11,13 @@ interface PathOption {
 
 interface PathSelectionCardsProps {
   onPathSelect: (path: string) => void;
+  selectedPath: string;
 }
 
 export const PathSelectionCards: React.FC<PathSelectionCardsProps> = ({
   onPathSelect,
+  selectedPath,
 }) => {
-  const [selectedPath, setSelectedPath] = useState<string>("/document-assistant");
-
   const pathOptions: PathOption[] = [
     {
       id: "document-assistant",
@@ -41,7 +40,7 @@ export const PathSelectionCards: React.FC<PathSelectionCardsProps> = ({
   ];
 
   const handlePathClick = (path: string) => {
-    setSelectedPath(path);
+    onPathSelect(path);
   };
 
   return (
