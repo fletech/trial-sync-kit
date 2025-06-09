@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FormField } from "@/components/ui/form-field";
 import { AuthLayout } from "@/features/auth/components/AuthLayout";
+import { signUp } from "@/services/userService";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Password validation states
   const [validations, setValidations] = useState({
@@ -51,7 +54,7 @@ const RegisterPage = () => {
     }
   }, [password]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (passwordStrength < 4) {
@@ -63,14 +66,38 @@ const RegisterPage = () => {
       return;
     }
 
-    // In a real implementation, we would integrate with Supabase auth here
-    toast({
-      title: "Account created successfully",
-      description: "You can now sign in with your credentials",
-    });
+    setIsLoading(true);
 
-    // Simulate navigation to success page
-    window.location.href = "/register/success";
+    try {
+      // Use Supabase auth for real user registration
+      const result = await signUp(email, password);
+
+      if (result.error) {
+        toast({
+          title: "Registration failed",
+          description: result.error.message || "Failed to create account",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Account created successfully",
+        description: "You can now sign in with your credentials",
+        variant: "success",
+      });
+
+      // Navigate to success page
+      navigate("/register/success");
+    } catch (error) {
+      toast({
+        title: "Registration failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -219,10 +246,10 @@ const RegisterPage = () => {
 
         <button
           type="submit"
-          className="w-full bg-primary hover:bg-primary-hover focus:bg-primary-selected text-white px-4 py-3 rounded transition-colors font-medium"
-          disabled={passwordStrength < 4}
+          className="w-full bg-primary hover:bg-primary-hover focus:bg-primary-selected text-white px-4 py-3 rounded transition-colors font-medium disabled:opacity-50"
+          disabled={passwordStrength < 4 || isLoading}
         >
-          Continue
+          {isLoading ? "Creating account..." : "Continue"}
         </button>
 
         <div className="text-center mt-4">

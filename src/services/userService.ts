@@ -1,3 +1,12 @@
+import { supabase } from "../lib/supabase";
+
+// NEW: Auth result types for Supabase
+export interface AuthResult {
+  user?: any;
+  session?: any;
+  error?: any;
+}
+
 // User types
 export interface User {
   email: string;
@@ -113,9 +122,97 @@ export const getAuthStatus = (): AuthStatus | null => {
   return authData ? JSON.parse(authData) : null;
 };
 
-export const isUserLoggedIn = (): boolean => {
-  const status = getAuthStatus();
-  return status?.isLoggedIn || false;
+// NEW: Supabase Auth Functions
+export const signUp = async (
+  email: string,
+  password: string,
+  name?: string
+): Promise<AuthResult> => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        name: name || null,
+      },
+    },
+  });
+
+  if (data.user && !error) {
+    // Use existing localStorage functions for preferences
+    login(email, false);
+  }
+
+  return { user: data.user, session: data.session, error };
+};
+
+export const signIn = async (
+  email: string,
+  password: string,
+  rememberMe: boolean = false
+): Promise<AuthResult> => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (data.user && !error) {
+    // Use existing login function to maintain compatibility
+    login(email, rememberMe);
+  }
+
+  return { user: data.user, session: data.session, error };
+};
+
+export const resetPassword = async (
+  email: string
+): Promise<{ error?: any }> => {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+
+  return { error };
+};
+
+export const updatePassword = async (
+  newPassword: string
+): Promise<{ user?: any; error?: any }> => {
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  return { user: data?.user, error };
+};
+
+// Enhanced auth status check
+export const isUserLoggedIn = async (): Promise<boolean> => {
+  try {
+    // Check local storage first (for quick UI updates)
+    const localStatus = getAuthStatus()?.isLoggedIn;
+
+    // Check Supabase session for real auth state
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    // If there's a session but local storage says logged out, sync them
+    if (session && !localStatus) {
+      login(session.user.email, getAuthStatus()?.rememberMe || false);
+      return true;
+    }
+
+    // If no session but local storage says logged in, clear local storage
+    if (!session && localStatus) {
+      logout();
+      return false;
+    }
+
+    return !!session;
+  } catch (error) {
+    console.error("Error checking auth status:", error);
+    return false;
+  }
 };
 
 export const login = (email: string, rememberMe: boolean = false): void => {
@@ -130,10 +227,17 @@ export const login = (email: string, rememberMe: boolean = false): void => {
   saveUser({ email });
 };
 
-export const logout = (): void => {
-  const authStatus = getAuthStatus();
+// Enhanced logout function
+export const logout = async (): Promise<void> => {
+  try {
+    // Sign out from Supabase
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.error("Error signing out from Supabase:", error);
+  }
 
-  // If remember me is not set, clear everything
+  // Existing localStorage logic
+  const authStatus = getAuthStatus();
   if (!authStatus?.rememberMe) {
     clearUser();
     localStorage.removeItem(STORAGE_KEYS.AUTH);
@@ -144,4 +248,41 @@ export const logout = (): void => {
       isLoggedIn: false,
     });
   }
+};
+
+// Get current user from Supabase
+export const getCurrentUser = async () => {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    return { user, error };
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    return { user: null, error };
+  }
+};
+
+// Initialize auth state listener
+export const initAuthListener = () => {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === "SIGNED_IN" && session) {
+      // Update local storage when user signs in
+      const rememberMe = getAuthStatus()?.rememberMe || false;
+      login(session.user.email, rememberMe);
+    } else if (event === "SIGNED_OUT") {
+      // Update local storage when user signs out
+      const authStatus = getAuthStatus();
+      if (!authStatus?.rememberMe) {
+        clearUser();
+        localStorage.removeItem(STORAGE_KEYS.AUTH);
+      } else {
+        saveAuthStatus({
+          ...authStatus,
+          isLoggedIn: false,
+        });
+      }
+    }
+  });
 };

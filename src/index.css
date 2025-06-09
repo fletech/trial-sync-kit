@@ -126,3 +126,42 @@
 .progress-bar-fill {
   @apply h-1 bg-primary rounded-full transition-all duration-300;
 }
+
+/* Toast Improvements */
+[data-sonner-toast] {
+  border: 2px solid #000 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  background: white !important;
+  color: #31343a !important;
+  font-weight: 500 !important;
+}
+
+[data-sonner-toast][data-type="success"] {
+  border-color: #00c07c !important;
+  background: #f0fdf4 !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  border-color: #ff4747 !important;
+  background: #fef2f2 !important;
+}
+
+[data-sonner-toast][data-type="warning"] {
+  border-color: #f59e0b !important;
+  background: #fffbeb !important;
+}
+
+[data-sonner-toast][data-type="info"] {
+  border-color: #2b59ff !important;
+  background: #eff6ff !important;
+}
+
+/* Toast title and description */
+[data-sonner-toast] [data-title] {
+  font-weight: 600 !important;
+  color: #31343a !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: #6d7688 !important;
+}

@@ -129,10 +129,10 @@ export const DynamicSidebar = ({ open, onToggle }: DynamicSidebarProps) => {
     email: "",
   });
 
+  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const { trialId } = useParams<{ trialId: string }>();
-  const { toast } = useToast();
   const { selectedTrial, isTrialView, setSelectedTrial } = useTrialContext();
 
   // Determine current section from URL
@@ -195,12 +195,20 @@ export const DynamicSidebar = ({ open, onToggle }: DynamicSidebarProps) => {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logged out successfully",
-    });
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully",
+        variant: "success",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -208,13 +216,14 @@ export const DynamicSidebar = ({ open, onToggle }: DynamicSidebarProps) => {
       e.preventDefault();
       (window as any).devToolsEnabled = !(window as any).devToolsEnabled;
       window.dispatchEvent(new CustomEvent("devToolsToggled"));
+
+      const isEnabled = (window as any).devToolsEnabled;
       toast({
-        title: (window as any).devToolsEnabled
-          ? "Dev Tools Enabled"
-          : "Dev Tools Disabled",
-        description: (window as any).devToolsEnabled
+        title: isEnabled ? "Dev Tools Enabled" : "Dev Tools Disabled",
+        description: isEnabled
           ? "Dev tools are now visible"
           : "Dev tools are now hidden",
+        variant: "info",
       });
     }
   };

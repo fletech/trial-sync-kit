@@ -3,10 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { isUserLoggedIn, isOnboardingCompleted } from "@/services/userService";
-import storage from "@/services/storage";
 import { runDataMigrations } from "@/utils/dataMigration";
 import { TrialProvider } from "@/contexts/TrialContext";
+import { ProtectedRoute, OnboardingCheck } from "@/components/ProtectedRoute";
 
 import { DevTools } from "@/components/DevTools";
 
@@ -36,38 +35,6 @@ import IntegrationsPage from "./pages/IntegrationsPage";
 import TrialDetailPage from "./pages/TrialDetailPage";
 
 const queryClient = new QueryClient();
-
-// A protected route wrapper component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isLoggedIn = isUserLoggedIn();
-
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// A route that checks if onboarding is completed
-const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
-  const onboardingComplete = isOnboardingCompleted();
-  const isLoggedIn = isUserLoggedIn();
-
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!onboardingComplete) {
-    return <Navigate to="/onboarding/step1" replace />;
-  }
-
-  // Initialize user data if this is their first time accessing the dashboard
-  if (!storage.isUserInitialized()) {
-    storage.initializeNewUser();
-  }
-
-  return <>{children}</>;
-};
 
 const App = () => {
   // Run data migrations on app startup

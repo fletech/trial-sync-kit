@@ -94,8 +94,8 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
     email: "",
   });
 
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get user data from localStorage
@@ -136,12 +136,20 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logged out successfully",
-    });
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully",
+        variant: "success",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -152,13 +160,13 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
       // Dispatch custom event to notify DevTools component
       window.dispatchEvent(new CustomEvent("devToolsToggled"));
 
+      const isEnabled = (window as any).devToolsEnabled;
       toast({
-        title: (window as any).devToolsEnabled
-          ? "Dev Tools Enabled"
-          : "Dev Tools Disabled",
-        description: (window as any).devToolsEnabled
+        title: isEnabled ? "Dev Tools Enabled" : "Dev Tools Disabled",
+        description: isEnabled
           ? "Dev tools are now visible"
           : "Dev tools are now hidden",
+        variant: "info",
       });
     }
   };

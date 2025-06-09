@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
-  login,
+  signIn,
   isUserLoggedIn,
   isOnboardingCompleted,
 } from "@/services/userService";
@@ -13,36 +13,61 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Check on component mount if user is already logged in
   useEffect(() => {
-    if (isUserLoggedIn()) {
-      const redirectTo = isOnboardingCompleted()
-        ? "/dashboard"
-        : "/onboarding/step1";
-      navigate(redirectTo, { replace: true });
-    }
+    const checkAuthStatus = async () => {
+      const loggedIn = await isUserLoggedIn();
+      if (loggedIn) {
+        const redirectTo = isOnboardingCompleted()
+          ? "/dashboard"
+          : "/onboarding/step1";
+        navigate(redirectTo, { replace: true });
+      }
+    };
+    checkAuthStatus();
   }, [navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    // In a real implementation, we would validate credentials with a backend
-    // For now, we'll simulate a successful login
-    login(email, rememberMe);
+    try {
+      // Use Supabase auth instead of mock login
+      const result = await signIn(email, password, rememberMe);
 
-    toast({
-      title: "Login successful",
-      description: "Redirecting...",
-    });
+      if (result.error) {
+        toast({
+          title: "Login failed",
+          description: result.error.message || "Invalid credentials",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    // Navigate to onboarding if not completed, otherwise to dashboard
-    const redirectPath = isOnboardingCompleted()
-      ? "/dashboard"
-      : "/onboarding/step1";
-    navigate(redirectPath);
+      toast({
+        title: "Login successful",
+        description: "Redirecting...",
+        variant: "success",
+      });
+
+      // Navigate to onboarding if not completed, otherwise to dashboard
+      const redirectPath = isOnboardingCompleted()
+        ? "/dashboard"
+        : "/onboarding/step1";
+      navigate(redirectPath);
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -93,9 +118,10 @@ const LoginPage = () => {
 
         <button
           type="submit"
-          className="w-full bg-primary hover:bg-primary-hover focus:bg-primary-selected text-white px-4 py-3 rounded transition-colors font-medium"
+          disabled={isLoading}
+          className="w-full bg-primary hover:bg-primary-hover focus:bg-primary-selected text-white px-4 py-3 rounded transition-colors font-medium disabled:opacity-50"
         >
-          Continue
+          {isLoading ? "Signing in..." : "Continue"}
         </button>
 
         <div className="text-center mt-4">
