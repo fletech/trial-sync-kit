@@ -22,10 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import {
-  TaskProvider,
-  useTasks,
-} from "@/features/taskManagement/context/TaskContext";
+import { TaskProvider, useTasks } from "@/contexts/TaskContext";
 import FrappeGanttChart from "@/features/taskManagement/components/FrappeGanttChart";
 import storage from "@/services/storage";
 import { useToast } from "@/hooks/use-toast";

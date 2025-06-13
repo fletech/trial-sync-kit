@@ -14,7 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import storage from "@/services/storage";
 import { toast } from "sonner";
 import { notificationEvents } from "@/hooks/useNotifications";
-import { TrialCard } from "@/features/trials/components/TrialCard";
+import { TrialCard } from "@/components/TrialCard";
 import { useTrialContext } from "@/contexts/TrialContext";
 import { TrialView } from "@/components/TrialView";
 import {

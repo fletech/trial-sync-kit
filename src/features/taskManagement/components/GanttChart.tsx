@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
-import { useTasks } from "../context/TaskContext";
+import { useTasks } from "../../../contexts/TaskContext";
 
 // Utilidades para fechas y jerarquía
 function getDateRange(tasks) {

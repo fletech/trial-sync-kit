@@ -26,8 +26,8 @@ import { StepThreePage } from "./pages/onboarding/StepThreePage";
 import { OnboardingCompletePage } from "./pages/onboarding/OnboardingCompletePage";
 
 // Dashboard Pages
-import { DashboardPage } from "./pages/dashboard/DashboardPage";
-import { TaskManagementPage } from "./pages/taskManagement/TaskManagementPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { TaskManagementPage } from "./pages/TaskManagementPage";
 import TrialsPage from "./pages/TrialsPage";
 import OrganizationPage from "./pages/OrganizationPage";
 import NotificationsPage from "./pages/NotificationsPage";

@@ -8,7 +8,7 @@ import {
 } from "@dnd-kit/sortable";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { useTasks } from "../context/TaskContext";
+import { useTasks } from "../../../contexts/TaskContext";
 
 interface KanbanBoardProps {
   columns: any[];

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FormField } from "@/components/ui/form-field";
-import { AuthLayout } from "@/features/auth/components/AuthLayout";
+import { AuthLayout } from "@/layouts/AuthLayout";
 import { signUp } from "@/services/userService";
 
 const RegisterPage = () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useTasks } from "../context/TaskContext";
+import { useTasks } from "../../../contexts/TaskContext";
 import "../styles/frappe-gantt-custom.css";
 
 // Declaramos Gantt como una variable global

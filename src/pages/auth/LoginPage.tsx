@@ -7,7 +7,7 @@ import {
   isOnboardingCompleted,
 } from "@/services/userService";
 import { FormField } from "@/components/ui/form-field";
-import { AuthLayout } from "@/features/auth/components/AuthLayout";
+import { AuthLayout } from "@/layouts/AuthLayout";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");

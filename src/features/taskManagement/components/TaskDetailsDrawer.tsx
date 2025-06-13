@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { TaskPrioritySelector } from "./TaskPrioritySelector";
 import { TaskAssigneeSelector } from "./TaskAssigneeSelector";
 import { TaskComments } from "./TaskComments";
-import { useTasks, Task } from "../context/TaskContext";
+import { useTasks, Task } from "../../../contexts/TaskContext";
 import { useToast } from "@/hooks/use-toast";
 import storage from "@/services/storage";
 import { notificationEvents } from "@/hooks/useNotifications";

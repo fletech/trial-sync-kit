@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTrialContext } from "@/contexts/TrialContext";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { TaskProvider } from "@/features/taskManagement/context/TaskContext";
+import { TaskProvider } from "@/contexts/TaskContext";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { DocumentAssistantInterface } from "@/components/DocumentAssistantInterface";
 import storage from "@/services/storage";

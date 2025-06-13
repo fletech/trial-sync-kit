@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { OnboardingLayout } from "@/features/onboarding/components/OnboardingLayout";
+import { OnboardingLayout } from "@/layouts/OnboardingLayout";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, X } from "lucide-react";
 import {

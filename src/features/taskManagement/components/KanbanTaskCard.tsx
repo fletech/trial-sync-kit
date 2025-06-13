@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { User, MessageCircle } from "lucide-react";
-import { useTasks } from "../context/TaskContext";
+import { useTasks } from "../../../contexts/TaskContext";
 import storage from "@/services/storage";
 
 interface KanbanTaskCardProps {
