@@ -1,7 +1,7 @@
 ---
-description:
-globs:
-alwaysApply: true
+description: 
+globs: 
+alwaysApply: false
 ---
 
 # PRD: THEMISON Trial Sync Kit - Prototipo MVP

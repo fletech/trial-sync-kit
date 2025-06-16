@@ -1,17 +1,38 @@
 // services/storage.js - UN SOLO SERVICE SIMPLE
+import { supabase } from "@/lib/supabase";
+
 const storage = {
   // Trials
-  getTrials: () => JSON.parse(localStorage.getItem("trials") || "[]"),
-  saveTrial: (trial) => {
-    const trials = storage.getTrials();
+  getTrials: async () => {
+    try {
+      const { data: trials, error } = await supabase
+        .from("trials")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching trials from database:", error);
+        // Fallback to localStorage if DB fails
+        return JSON.parse(localStorage.getItem("trials") || "[]");
+      }
+
+      return trials || [];
+    } catch (error) {
+      console.error("Error in getTrials:", error);
+      // Fallback to localStorage if DB fails
+      return JSON.parse(localStorage.getItem("trials") || "[]");
+    }
+  },
+  saveTrial: async (trial) => {
+    const trials = await storage.getTrials();
     const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newTrial = { ...trial, id: uniqueId };
     trials.push(newTrial);
     localStorage.setItem("trials", JSON.stringify(trials));
     return newTrial;
   },
-  updateTrial: (id, updatedTrial) => {
-    const trials = storage.getTrials();
+  updateTrial: async (id, updatedTrial) => {
+    const trials = await storage.getTrials();
     const index = trials.findIndex((trial) => trial.id === id);
     if (index !== -1) {
       trials[index] = { ...trials[index], ...updatedTrial };
@@ -20,8 +41,8 @@ const storage = {
     }
     return null;
   },
-  deleteTrial: (id) => {
-    const trials = storage.getTrials();
+  deleteTrial: async (id) => {
+    const trials = await storage.getTrials();
     const filteredTrials = trials.filter((trial) => trial.id !== id);
     localStorage.setItem("trials", JSON.stringify(filteredTrials));
     return true;

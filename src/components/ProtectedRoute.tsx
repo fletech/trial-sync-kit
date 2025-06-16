@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { isOnboardingCompleted } from "@/services/userService";
 import storage from "@/services/storage";
+import { useState, useEffect } from "react";
 
 // Loading component
 const AuthLoading = () => (
@@ -35,9 +36,30 @@ export const OnboardingCheck = ({
   children: React.ReactNode;
 }) => {
   const { isLoggedIn, isLoading } = useAuth();
-  const onboardingComplete = isOnboardingCompleted();
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(
+    null
+  );
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
-  if (isLoading) {
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (isLoggedIn && !isLoading) {
+        try {
+          const completed = await isOnboardingCompleted();
+          setOnboardingComplete(completed);
+        } catch (error) {
+          console.error("Error checking onboarding:", error);
+          setOnboardingComplete(false);
+        } finally {
+          setCheckingOnboarding(false);
+        }
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [isLoggedIn, isLoading]);
+
+  if (isLoading || checkingOnboarding) {
     return <AuthLoading />;
   }
 
@@ -45,7 +67,7 @@ export const OnboardingCheck = ({
     return <Navigate to="/login" replace />;
   }
 
-  if (!onboardingComplete) {
+  if (onboardingComplete === false) {
     return <Navigate to="/onboarding/step1" replace />;
   }
 

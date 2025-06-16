@@ -3,7 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { runDataMigrations } from "@/utils/dataMigration";
 import { TrialProvider } from "@/contexts/TrialContext";
 import { ProtectedRoute, OnboardingCheck } from "@/components/ProtectedRoute";
 
@@ -37,9 +36,6 @@ import TrialDetailPage from "./pages/TrialDetailPage";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Run data migrations on app startup
-  runDataMigrations();
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -69,6 +65,14 @@ const App = () => {
               />
 
               {/* Onboarding Routes - protected by login */}
+              <Route
+                path="/onboarding/invited"
+                element={
+                  <ProtectedRoute>
+                    <StepOnePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/onboarding/step1"
                 element={

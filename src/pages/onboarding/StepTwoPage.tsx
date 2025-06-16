@@ -11,6 +11,7 @@ export const StepTwoPage = () => {
   const [studyName, setStudyName] = useState("");
   const [location, setLocation] = useState("");
   const [sponsorName, setSponsorName] = useState("");
+  const [phase, setPhase] = useState("");
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -19,17 +20,23 @@ export const StepTwoPage = () => {
   useEffect(() => {
     const onboardingStatus = getOnboardingStatus();
     if (onboardingStatus?.studyInfo) {
-      const { name, location: loc, sponsor } = onboardingStatus.studyInfo;
+      const {
+        name,
+        location: loc,
+        sponsor,
+        phase: savedPhase,
+      } = onboardingStatus.studyInfo;
       setStudyName(name || "");
       setLocation(loc || "");
       setSponsorName(sponsor || "");
+      setPhase(savedPhase || "");
     }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!studyName || !location || !sponsorName) {
+    if (!studyName || !location || !sponsorName || !phase) {
       toast({
         title: "Required fields missing",
         description: "Please fill in all fields to continue",
@@ -43,6 +50,7 @@ export const StepTwoPage = () => {
       name: studyName,
       location,
       sponsor: sponsorName,
+      phase,
     });
 
     // Navigate to next step
@@ -110,6 +118,21 @@ export const StepTwoPage = () => {
                 value={sponsorName}
                 onChange={(e) => setSponsorName(e.target.value)}
                 placeholder="Sponsor name"
+                className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phase" className="block text-sm font-medium mb-1">
+                Phase
+              </label>
+              <input
+                id="phase"
+                type="text"
+                value={phase}
+                onChange={(e) => setPhase(e.target.value)}
+                placeholder="e.g., Phase 1, Phase 2, Phase 3"
                 className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />

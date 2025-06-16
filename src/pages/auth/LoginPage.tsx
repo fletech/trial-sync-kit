@@ -5,6 +5,8 @@ import {
   signIn,
   isUserLoggedIn,
   isOnboardingCompleted,
+  isUserInvited,
+  getInvitedUserRole,
 } from "@/services/userService";
 import { FormField } from "@/components/ui/form-field";
 import { AuthLayout } from "@/layouts/AuthLayout";
@@ -22,9 +24,18 @@ const LoginPage = () => {
     const checkAuthStatus = async () => {
       const loggedIn = await isUserLoggedIn();
       if (loggedIn) {
-        const redirectTo = isOnboardingCompleted()
-          ? "/dashboard"
-          : "/onboarding/step1";
+        const onboardingCompleted = await isOnboardingCompleted();
+        const userInvited = await isUserInvited();
+        const invitedRole = userInvited ? await getInvitedUserRole() : null;
+
+        let redirectTo = "/dashboard";
+        if (!onboardingCompleted) {
+          redirectTo =
+            userInvited && invitedRole !== "Principal investigator"
+              ? "/onboarding/invited"
+              : "/onboarding/step1";
+        }
+
         navigate(redirectTo, { replace: true });
       }
     };
@@ -54,10 +65,19 @@ const LoginPage = () => {
         variant: "success",
       });
 
-      // Navigate to onboarding if not completed, otherwise to dashboard
-      const redirectPath = isOnboardingCompleted()
-        ? "/dashboard"
-        : "/onboarding/step1";
+      // Navigate to appropriate destination based on user type and onboarding status
+      const onboardingCompleted = await isOnboardingCompleted();
+      const userInvited = await isUserInvited();
+      const invitedRole = userInvited ? await getInvitedUserRole() : null;
+
+      let redirectPath = "/dashboard";
+      if (!onboardingCompleted) {
+        redirectPath =
+          userInvited && invitedRole !== "Principal investigator"
+            ? "/onboarding/invited"
+            : "/onboarding/step1";
+      }
+
       navigate(redirectPath);
     } catch (error) {
       toast({

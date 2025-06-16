@@ -4,29 +4,10 @@ import { OnboardingLayout } from "@/layouts/OnboardingLayout";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, X } from "lucide-react";
 import {
-  updateOnboardingStep,
   getOnboardingStatus,
-  saveUser,
-  getUser,
+  saveCompleteOnboarding,
 } from "@/services/userService";
-import storage from "@/services/storage";
 import { RoleSelector, CLINICAL_ROLES } from "@/components/RoleSelector";
-
-// Trial images array - same as in TrialsPage
-const trialImages = [
-  "/trials-images/pawel-czerwinski-fRzUPSFnp04-unsplash.jpg",
-  "/trials-images/pawel-czerwinski-Tyg0rVhOTrE-unsplash.jpg",
-  "/trials-images/laura-vinck-Hyu76loQLdk-unsplash.jpg",
-  "/trials-images/pawel-czerwinski-Lki74Jj7H-U-unsplash.jpg",
-  "/trials-images/pawel-czerwinski-tMbQpdguDVQ-unsplash.jpg",
-  "/trials-images/daniel-olah-VS_kFx4yF5g-unsplash.jpg",
-  "/trials-images/geordanna-cordero-5NE6mX0WVfQ-unsplash.jpg",
-  "/trials-images/bia-w-a-PO8Woh4YBD8-unsplash.jpg",
-  "/trials-images/mymind-tZCrFpSNiIQ-unsplash.jpg",
-  "/trials-images/pawel-czerwinski-ruJm3dBXCqw-unsplash.jpg",
-  "/trials-images/annie-spratt-0ZPSX_mQ3xI-unsplash.jpg",
-  "/trials-images/usgs-hoS3dzgpHzw-unsplash.jpg",
-];
 
 interface TeamMember {
   email: string;
@@ -74,197 +55,77 @@ export const StepThreePage = () => {
     setMembers(updatedMembers);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Initialize localStorage if not already done
-    if (!storage.isUserInitialized()) {
-      storage.initializeNewUser();
-    }
-
-    // Validate emails
     const validMembers = members.filter((m) => m.email.trim() !== "");
+    const onboardingData = getOnboardingStatus();
 
-    // Create the first trial from onboarding study info
-    if (onboardingStatus?.studyInfo) {
-      const { name, location, sponsor } = onboardingStatus.studyInfo;
-
-      const firstTrial = {
-        name: name,
-        description: `Clinical trial created during onboarding setup. This study will be conducted in ${location}.`,
-        status: "planning", // Aligned with Kanban workflow
-        location: location,
-        progress: 0,
-        upcoming: "Upload protocols",
-        pendingTask: "Assign team members",
-        phase: "Phase I", // Default clinical trial phase
-        image: trialImages[0],
-        isNew: true,
-        sponsor: sponsor,
-        piContact: "Principal Investigator",
-        studyStart: new Date().toLocaleDateString("en-GB"),
-        estimatedCloseOut: new Date(
-          Date.now() + 365 * 24 * 60 * 60 * 1000
-        ).toLocaleDateString("en-GB"),
-      };
-
-      // Save the trial to localStorage
-      const savedTrial = storage.saveTrial(firstTrial);
-
-      // Associate sample documents with the new trial
-      if (savedTrial) {
-        const existingDocuments = storage.getTrialDocuments("demo-trial");
-        existingDocuments.forEach((doc) => {
-          // Update the trialId to the actual trial ID
-          const updatedDoc = { ...doc, trialId: savedTrial.id };
-          storage.deleteTrialDocument(doc.id); // Remove old document
-          storage.saveTrialDocument(savedTrial.id, {
-            name: updatedDoc.name,
-            size: updatedDoc.size,
-            type: updatedDoc.type,
-            uploadedAt: updatedDoc.uploadedAt,
-          });
-        });
-      }
-
-      // Create tasks in Task Manager for this trial
-      if (savedTrial) {
-        const startDate = new Date();
-        const upcomingDueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        const pendingDueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-
-        // Create upcoming task
-        const upcomingTaskObj = {
-          columnId: "planning",
-          trial: name,
-          site: location,
-          priority: "Medium",
-          role: "CRA",
-          owner: "Unassigned",
-          dates: `${startDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })} - ${upcomingDueDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}`,
-          startDate: startDate.toISOString().split("T")[0],
-          endDate: upcomingDueDate.toISOString().split("T")[0],
-          parentId: null,
-          dependencies: [],
-          progress: 0,
-          users: 1,
-          files: 0,
-          comments: 0,
-          title: "Upload protocols",
-          trialId: savedTrial.id,
-          trialName: name,
-          category: "Protocol",
-        };
-
-        // Create pending task
-        const pendingTaskObj = {
-          columnId: "planning",
-          trial: name,
-          site: location,
-          priority: "High",
-          role: "CTM",
-          owner: "Unassigned",
-          dates: `${startDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })} - ${pendingDueDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}`,
-          startDate: startDate.toISOString().split("T")[0],
-          endDate: pendingDueDate.toISOString().split("T")[0],
-          parentId: null,
-          dependencies: [],
-          progress: 0,
-          users: 1,
-          files: 0,
-          comments: 0,
-          title: "Assign team members",
-          trialId: savedTrial.id,
-          trialName: name,
-          category: "Team Management",
-        };
-
-        // Save tasks to Task Manager
-        storage.saveTask(upcomingTaskObj);
-        storage.saveTask(pendingTaskObj);
-      }
-
-      // Create a notification for the new trial
-      storage.saveNotification({
-        type: "trial_update",
-        title: "Welcome to THEMISON!",
-        message: `Your first trial "${name}" has been created successfully. You can now start managing your clinical research.`,
+    if (!onboardingData) {
+      toast({
+        title: "Error",
+        description: "Onboarding data not found. Please start from step 1.",
+        variant: "destructive",
       });
+      return;
     }
 
-    // Save team members to localStorage if any
-    if (validMembers.length > 0) {
-      validMembers.forEach((member) => {
-        const teamMember = {
+    try {
+      const result = await saveCompleteOnboarding({
+        profile: {
+          first_name: onboardingData.userInfo?.firstName || "",
+          last_name: onboardingData.userInfo?.lastName || "",
+        },
+        trial: {
+          name: onboardingData.studyInfo?.name || "",
+          location: onboardingData.studyInfo?.location || "",
+          sponsor: onboardingData.studyInfo?.sponsor || "",
+          phase: onboardingData.studyInfo?.phase || "",
+        },
+        teamMembers: validMembers.map((member) => ({
           name: member.email.split("@")[0], // Use email prefix as name
           email: member.email,
           role: member.role,
-          status: "active",
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            member.email.split("@")[0]
-          )}&background=5B6CFF&color=fff`,
-        };
-        storage.saveTeamMember(teamMember);
+        })),
+        currentUserRole: onboardingData.role || "",
       });
 
-      // Create notification for team setup with a small delay to ensure unique timestamps
-      setTimeout(() => {
-        storage.saveNotification({
-          type: "team_update",
-          title: "Team Members Added",
-          message: `${validMembers.length} team member(s) have been added to your organization.`,
+      if (result.success) {
+        // Clear onboarding data from localStorage
+        localStorage.removeItem("themison_onboarding");
+
+        // Show success message
+        if (validMembers.length > 0) {
+          toast({
+            title: "Setup completed successfully!",
+            description: `Your first trial and ${validMembers.length} team member(s) have been added.`,
+          });
+        } else {
+          toast({
+            title: "Setup completed successfully!",
+            description:
+              "Your first trial has been created. You can now start managing your research.",
+          });
+        }
+
+        // Navigate to dashboard
+        navigate("/dashboard");
+      } else {
+        toast({
+          title: "Error",
+          description:
+            result.error || "Failed to complete setup. Please try again.",
+          variant: "destructive",
         });
-      }, 10);
-    }
-
-    // Save user information to user profile
-    if (onboardingStatus?.userInfo) {
-      const currentUser = getUser();
-      const { firstName, lastName } = onboardingStatus.userInfo;
-
-      saveUser({
-        email: currentUser?.email || "",
-        name: `${firstName} ${lastName}`,
-        role: onboardingStatus.role || "",
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          firstName + " " + lastName
-        )}&background=5B6CFF&color=fff`,
-      });
-    }
-
-    // Mark onboarding as completed
-    updateOnboardingStep(3, validMembers);
-
-    // Show success message
-    if (validMembers.length > 0) {
+      }
+    } catch (error) {
+      console.error("Onboarding completion error:", error);
       toast({
-        title: "Setup completed successfully!",
-        description: `Your first trial and ${validMembers.length} team member(s) have been added.`,
-      });
-    } else {
-      toast({
-        title: "Setup completed successfully!",
-        description:
-          "Your first trial has been created. You can now start managing your research.",
+        title: "Error",
+        description: "Failed to complete setup. Please try again.",
+        variant: "destructive",
       });
     }
-
-    // Navigate to dashboard
-    navigate("/dashboard");
   };
 
   return (

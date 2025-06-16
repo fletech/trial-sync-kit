@@ -108,32 +108,42 @@ export const TrialsPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load trials from localStorage only
+    // Load trials from database
     loadTrials();
   }, []);
 
-  const loadTrials = () => {
-    const data = storage.getTrials();
-    setTrials(data);
+  const loadTrials = async () => {
+    try {
+      const data = await storage.getTrials();
+      setTrials(data);
+    } catch (error) {
+      console.error("Error loading trials:", error);
+      setTrials([]);
+    }
   };
 
   // Function to get the next available image for a new trial
-  const getNextTrialImage = () => {
-    const existingTrials = storage.getTrials();
-    const usedImages = existingTrials
-      .map((trial) => trial.image)
-      .filter(Boolean);
+  const getNextTrialImage = async () => {
+    try {
+      const existingTrials = await storage.getTrials();
+      const usedImages = existingTrials
+        .map((trial) => trial.image)
+        .filter(Boolean);
 
-    // Find the first image that hasn't been used yet
-    const availableImage = trialImages.find(
-      (image) => !usedImages.includes(image)
-    );
+      // Find the first image that hasn't been used yet
+      const availableImage = trialImages.find(
+        (image) => !usedImages.includes(image)
+      );
 
-    // If all images are used, start over with the first one
-    return availableImage || trialImages[0];
+      // If all images are used, start over with the first one
+      return availableImage || trialImages[0];
+    } catch (error) {
+      console.error("Error getting next trial image:", error);
+      return trialImages[0]; // Fallback to first image
+    }
   };
 
-  const handleCreateTrial = () => {
+  const handleCreateTrial = async () => {
     if (!newTrial.name || !newTrial.description || !newTrial.location) {
       toast.error("Please fill in all required fields.");
       return;
@@ -148,11 +158,11 @@ export const TrialsPage = () => {
       upcoming: upcomingTask,
       pendingTask: pendingTask,
       progress: 0,
-      image: getNextTrialImage(),
+      image: await getNextTrialImage(),
       isNew: true,
     };
 
-    const savedTrial = storage.saveTrial(trial);
+    const savedTrial = await storage.saveTrial(trial);
 
     // Create tasks in Task Manager for this trial
     if (savedTrial) {
