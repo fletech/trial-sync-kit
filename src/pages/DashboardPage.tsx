@@ -121,7 +121,7 @@ export const DashboardPage = () => {
           {/* Featured Card */}
           <div className="lg:col-span-1">
             <div
-              className="relative bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl overflow-hidden h-80 flex flex-col justify-between text-white p-6"
+              className="relative bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl overflow-hidden h-[60vh] w-[30vw] flex flex-col justify-between text-white p-6"
               style={{
                 backgroundImage: "url('/assets/image-card.jpg')",
                 backgroundSize: "cover",
@@ -143,25 +143,6 @@ export const DashboardPage = () => {
                 Upload a Document in OPERA Trial
               </button>
             </div>
-          </div>
-
-          {/* Quick Links */}
-          <div className="grid grid-cols-2 gap-4">
-            {quickLinks.map((link) => (
-              <a
-                key={link.title}
-                href={link.href}
-                className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow group hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  {link.icon}
-                  <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
-                    {link.title}
-                  </h3>
-                </div>
-                <p className="text-sm text-gray-600">{link.description}</p>
-              </a>
-            ))}
           </div>
         </div>
       </div>
