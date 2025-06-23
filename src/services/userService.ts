@@ -572,27 +572,8 @@ export const saveCompleteOnboarding = async (data: OnboardingData) => {
       teamId = teamData.id;
     }
 
-    // 3. Create trial
-    const { data: trialData, error: trialError } = await supabase
-      .from("trials")
-      .insert({
-        name: data.trial.name,
-        location: data.trial.location,
-        sponsor: data.trial.sponsor,
-        phase: data.trial.phase,
-        created_by: user.id,
-        is_new: true,
-        ...(teamId && { team_id: teamId }),
-      })
-      .select()
-      .single();
-
-    if (trialError) {
-      throw new Error(`Trial creation failed: ${trialError.message}`);
-    }
-
-    // 4. Handle team members (simplified thanks to DB trigger)
-
+    // 3. Create team member record FIRST (required for RLS policy to allow trial creation)
+    
     // Check if current user already exists in team_members (invited or self-created)
     const { data: existingTeamMember, error: teamMemberCheckError } =
       await supabase
@@ -628,7 +609,26 @@ export const saveCompleteOnboarding = async (data: OnboardingData) => {
       }
     }
 
-    // Add any new invited team members (constraint prevents duplicates)
+    // 4. NOW create trial (user is already in team_members, so RLS policy will pass)
+    const { data: trialData, error: trialError } = await supabase
+      .from("trials")
+      .insert({
+        name: data.trial.name,
+        location: data.trial.location,
+        sponsor: data.trial.sponsor,
+        phase: data.trial.phase,
+        created_by: user.id,
+        is_new: true,
+        ...(teamId && { team_id: teamId }),
+      })
+      .select()
+      .single();
+
+    if (trialError) {
+      throw new Error(`Trial creation failed: ${trialError.message}`);
+    }
+
+    // 5. Add any new invited team members (constraint prevents duplicates)
     if (data.teamMembers && data.teamMembers.length > 0) {
       const invitedMembers = data.teamMembers.map((member) => ({
         name: member.name || member.email.split("@")[0], // Use email prefix if no name

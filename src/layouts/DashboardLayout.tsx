@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { DynamicSidebar } from "@/components/DynamicSidebar";
+import { Sidebar } from "@/components/Sidebar";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -10,7 +10,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen flex bg-themison-bg-gray">
-      <DynamicSidebar
+      <Sidebar
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />

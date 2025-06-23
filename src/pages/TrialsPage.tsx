@@ -47,6 +47,7 @@ import {
   type TrialStatusId,
   type TrialLocation,
 } from "@/constants/trialConstants";
+import { supabase } from "@/lib/supabase";
 
 interface Trial {
   id: string;
@@ -149,122 +150,139 @@ export const TrialsPage = () => {
       return;
     }
 
-    // Set default values for upcoming and pending tasks if empty
-    const upcomingTask = newTrial.upcoming.trim() || "Upload protocols";
-    const pendingTask = newTrial.pendingTask.trim() || "Assign team members";
+    try {
+      // Get the current authenticated user
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-    const trial = {
-      ...newTrial,
-      upcoming: upcomingTask,
-      pendingTask: pendingTask,
-      progress: 0,
-      image: await getNextTrialImage(),
-      isNew: true,
-    };
+      if (authError || !user) {
+        toast.error("You must be logged in to create a trial.");
+        return;
+      }
 
-    const savedTrial = await storage.saveTrial(trial);
+      // Set default values for upcoming and pending tasks if empty
+      const upcomingTask = newTrial.upcoming.trim() || "Upload protocols";
+      const pendingTask = newTrial.pendingTask.trim() || "Assign team members";
 
-    // Create tasks in Task Manager for this trial
-    if (savedTrial) {
-      const startDate = new Date();
-      const upcomingDueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      const pendingDueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-
-      // Create upcoming task
-      const upcomingTaskObj = {
-        columnId: "planning",
-        trial: trial.name,
-        site: trial.location,
-        priority: "Medium",
-        role: "CRA",
-        owner: "Unassigned",
-        dates: `${startDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })} - ${upcomingDueDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}`,
-        startDate: startDate.toISOString().split("T")[0],
-        endDate: upcomingDueDate.toISOString().split("T")[0],
-        parentId: null,
-        dependencies: [],
+      const trial = {
+        ...newTrial,
+        upcoming: upcomingTask,
+        pendingTask: pendingTask,
         progress: 0,
-        users: 1,
-        files: 0,
-        comments: 0,
-        title: upcomingTask,
-        trialId: savedTrial.id,
-        trialName: trial.name,
-        category: "Protocol",
+        image: await getNextTrialImage(),
+        isNew: true,
+        created_by: user.id, // Add the authenticated user ID
       };
 
-      // Create pending task
-      const pendingTaskObj = {
-        columnId: "planning",
-        trial: trial.name,
-        site: trial.location,
-        priority: "High",
-        role: "CTM",
-        owner: "Unassigned",
-        dates: `${startDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })} - ${pendingDueDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}`,
-        startDate: startDate.toISOString().split("T")[0],
-        endDate: pendingDueDate.toISOString().split("T")[0],
-        parentId: null,
-        dependencies: [],
-        progress: 0,
-        users: 1,
-        files: 0,
-        comments: 0,
-        title: pendingTask,
-        trialId: savedTrial.id,
-        trialName: trial.name,
-        category: "Team Management",
-      };
+      const savedTrial = await storage.saveTrial(trial);
 
-      // Save tasks to Task Manager
-      storage.saveTask(upcomingTaskObj);
-      storage.saveTask(pendingTaskObj);
+      // Create tasks in Task Manager for this trial
+      if (savedTrial) {
+        const startDate = new Date();
+        const upcomingDueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const pendingDueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
+        // Create upcoming task
+        const upcomingTaskObj = {
+          columnId: "planning",
+          trial: trial.name,
+          site: trial.location,
+          priority: "Medium",
+          role: "CRA",
+          owner: "Unassigned",
+          dates: `${startDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })} - ${upcomingDueDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}`,
+          startDate: startDate.toISOString().split("T")[0],
+          endDate: upcomingDueDate.toISOString().split("T")[0],
+          parentId: null,
+          dependencies: [],
+          progress: 0,
+          users: 1,
+          files: 0,
+          comments: 0,
+          title: upcomingTask,
+          trialId: savedTrial.id,
+          trialName: trial.name,
+          category: "Protocol",
+        };
+
+        // Create pending task
+        const pendingTaskObj = {
+          columnId: "planning",
+          trial: trial.name,
+          site: trial.location,
+          priority: "High",
+          role: "CTM",
+          owner: "Unassigned",
+          dates: `${startDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })} - ${pendingDueDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}`,
+          startDate: startDate.toISOString().split("T")[0],
+          endDate: pendingDueDate.toISOString().split("T")[0],
+          parentId: null,
+          dependencies: [],
+          progress: 0,
+          users: 1,
+          files: 0,
+          comments: 0,
+          title: pendingTask,
+          trialId: savedTrial.id,
+          trialName: trial.name,
+          category: "Team Management",
+        };
+
+        // Save tasks to Task Manager
+        storage.saveTask(upcomingTaskObj);
+        storage.saveTask(pendingTaskObj);
+      }
+
+      // Create notification for new trial
+      storage.saveNotification({
+        type: "trial_update",
+        title: "New Trial Created",
+        message: `Trial "${trial.name}" has been created and is now in ${trial.status} status`,
+      });
+
+      loadTrials();
+      setIsCreateModalOpen(false);
+      setNewTrial({
+        name: "",
+        description: "",
+        status: "planning" as TrialStatusId,
+        location: "Milano" as TrialLocation,
+        phase: "Phase I" as TrialPhase,
+        upcoming: "",
+        pendingTask: "",
+        sponsor: "",
+        piContact: "",
+        studyStart: "",
+        estimatedCloseOut: "",
+      });
+
+      // Emit event to update notification count
+      notificationEvents.emit();
+
+      toast.success("Trial Created", {
+        description:
+          "New trial has been created successfully with default tasks.",
+      });
+    } catch (error) {
+      console.error("Error creating trial:", error);
+      toast.error("Failed to create trial. Please try again.");
     }
-
-    // Create notification for new trial
-    storage.saveNotification({
-      type: "trial_update",
-      title: "New Trial Created",
-      message: `Trial "${trial.name}" has been created and is now in ${trial.status} status`,
-    });
-
-    loadTrials();
-    setIsCreateModalOpen(false);
-    setNewTrial({
-      name: "",
-      description: "",
-      status: "planning" as TrialStatusId,
-      location: "Milano" as TrialLocation,
-      phase: "Phase I" as TrialPhase,
-      upcoming: "",
-      pendingTask: "",
-      sponsor: "",
-      piContact: "",
-      studyStart: "",
-      estimatedCloseOut: "",
-    });
-
-    // Emit event to update notification count
-    notificationEvents.emit();
-
-    toast.success("Trial Created", {
-      description:
-        "New trial has been created successfully with default tasks.",
-    });
   };
 
   const handleTrialClick = (trial: Trial) => {

@@ -11,9 +11,9 @@ export const Breadcrumb = () => {
   // Function to get section from URL
   const getSectionFromUrl = () => {
     const path = location.pathname;
-    if (path.includes("/task-manager")) return "Task Management";
+    if (path.includes("/tasks")) return "Tasks";
     if (path.includes("/document-assistant")) return "Document Assistant";
-    if (path.includes("/team-roles")) return "Team & Roles";
+    if (path.includes("/team")) return "Team & Roles";
     if (path.includes("/notifications")) return "Notifications";
     if (path.includes("/integrations")) return "Integrations";
     return "Overview";
@@ -23,33 +23,6 @@ export const Breadcrumb = () => {
   useEffect(() => {
     setCurrentSection(getSectionFromUrl());
   }, [location.pathname]);
-
-  useEffect(() => {
-    // Listen for section changes from the sidebar
-    const handleSectionChange = (event: CustomEvent) => {
-      const sectionMap: { [key: string]: string } = {
-        overview: "Overview",
-        "task-management": "Task Management",
-        "document-assistant": "Document Assistant",
-        "team-roles": "Team & Roles",
-        notifications: "Notifications",
-        integrations: "Integrations",
-      };
-      setCurrentSection(sectionMap[event.detail.section] || "Overview");
-    };
-
-    window.addEventListener(
-      "trialSectionChanged",
-      handleSectionChange as EventListener
-    );
-
-    return () => {
-      window.removeEventListener(
-        "trialSectionChanged",
-        handleSectionChange as EventListener
-      );
-    };
-  }, []);
 
   if (!isTrialView || !selectedTrial) {
     return null;

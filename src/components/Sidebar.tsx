@@ -13,8 +13,9 @@ import {
   Menu,
   ChevronRight,
   X,
+  MessageSquare,
 } from "lucide-react";
-import { getUser, logout } from "@/services/userService";
+import { getUser, logout, getOnboardingStatus } from "@/services/userService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -100,10 +101,12 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
   useEffect(() => {
     // Get user data from localStorage
     const user = getUser();
+    const onboardingStatus = getOnboardingStatus();
+
     if (user) {
       setUserData({
         name: user.name || "Guest User",
-        role: user.role || "Guest",
+        role: onboardingStatus?.role || "Guest",
         avatar: user.avatar || "/placeholder.svg",
         email: user.email || "",
       });
@@ -114,10 +117,12 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
   useEffect(() => {
     const handleStorageChange = () => {
       const user = getUser();
+      const onboardingStatus = getOnboardingStatus();
+
       if (user) {
         setUserData({
           name: user.name || "Guest User",
-          role: user.role || "Guest",
+          role: onboardingStatus?.role || "Guest",
           avatar: user.avatar || "/placeholder.svg",
           email: user.email || "",
         });
@@ -244,9 +249,14 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
                 label={open ? "Trials" : ""}
               />
               <NavItem
+                to="/document-assistant"
+                icon={<MessageSquare className="h-5 w-5" />}
+                label={open ? "Document Assistant" : ""}
+              />
+              <NavItem
                 to="/task-manager"
                 icon={<CheckSquare className="h-5 w-5" />}
-                label={open ? "Tasks" : ""}
+                label={open ? "Task Management" : ""}
               />
               <NavItem
                 to="/organisation"

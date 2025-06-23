@@ -161,10 +161,10 @@ const App = () => {
                 }
               />
               <Route
-                path="/trials/:trialId/task-manager"
+                path="/trials/:trialId/tasks"
                 element={
                   <OnboardingCheck>
-                    <TaskManagementPage />
+                    <TrialDetailPage />
                   </OnboardingCheck>
                 }
               />
@@ -177,23 +177,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/trials/:trialId/team-roles"
-                element={
-                  <OnboardingCheck>
-                    <TrialDetailPage />
-                  </OnboardingCheck>
-                }
-              />
-              <Route
-                path="/trials/:trialId/notifications"
-                element={
-                  <OnboardingCheck>
-                    <TrialDetailPage />
-                  </OnboardingCheck>
-                }
-              />
-              <Route
-                path="/trials/:trialId/integrations"
+                path="/trials/:trialId/team"
                 element={
                   <OnboardingCheck>
                     <TrialDetailPage />

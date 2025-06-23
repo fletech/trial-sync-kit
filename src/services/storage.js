@@ -16,7 +16,29 @@ const storage = {
         return JSON.parse(localStorage.getItem("trials") || "[]");
       }
 
-      return trials || [];
+      // Transform Supabase data to match the expected structure
+      const transformedTrials = (trials || []).map((trial) => ({
+        id: trial.id,
+        name: trial.name,
+        description: trial.description || "No description available",
+        status: trial.status || "planning", // Default status
+        location: trial.location,
+        sponsor: trial.sponsor,
+        phase: trial.phase,
+        image: trial.image_url,
+        isNew: trial.is_new || false,
+        // Add computed/default fields that the UI expects
+        progress: trial.progress || 0,
+        upcoming: trial.upcoming || "No upcoming tasks",
+        pendingTask: trial.pending_task || "No pending tasks",
+        piContact: trial.pi_contact || "Prof. Cesare Hassan",
+        studyStart: trial.study_start || "01 September 2025",
+        estimatedCloseOut: trial.estimated_close_out || "13 December 2025",
+        created_at: trial.created_at,
+        updated_at: trial.updated_at,
+      }));
+
+      return transformedTrials;
     } catch (error) {
       console.error("Error in getTrials:", error);
       // Fallback to localStorage if DB fails
@@ -24,28 +46,156 @@ const storage = {
     }
   },
   saveTrial: async (trial) => {
-    const trials = await storage.getTrials();
-    const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const newTrial = { ...trial, id: uniqueId };
-    trials.push(newTrial);
-    localStorage.setItem("trials", JSON.stringify(trials));
-    return newTrial;
+    try {
+      const { data, error } = await supabase
+        .from("trials")
+        .insert([
+          {
+            name: trial.name,
+            description: trial.description,
+            location: trial.location,
+            sponsor: trial.sponsor,
+            phase: trial.phase,
+            image_url: trial.image,
+            is_new: trial.isNew || true,
+            created_by: trial.created_by, // This should be set by the calling code
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error saving trial to database:", error);
+        // Fallback to localStorage
+        const trials = await storage.getTrials();
+        const uniqueId = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+        const newTrial = { ...trial, id: uniqueId };
+        trials.push(newTrial);
+        localStorage.setItem("trials", JSON.stringify(trials));
+        return newTrial;
+      }
+
+      // Transform the response to match expected structure
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description || "No description available",
+        status: data.status || "planning",
+        location: data.location,
+        sponsor: data.sponsor,
+        phase: data.phase,
+        image: data.image_url,
+        isNew: data.is_new || false,
+        progress: data.progress || 0,
+        upcoming: data.upcoming || "No upcoming tasks",
+        pendingTask: data.pending_task || "No pending tasks",
+        piContact: data.pi_contact || "Prof. Cesare Hassan",
+        studyStart: data.study_start || "01 September 2025",
+        estimatedCloseOut: data.estimated_close_out || "13 December 2025",
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+    } catch (error) {
+      console.error("Error in saveTrial:", error);
+      // Fallback to localStorage
+      const trials = await storage.getTrials();
+      const uniqueId = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      const newTrial = { ...trial, id: uniqueId };
+      trials.push(newTrial);
+      localStorage.setItem("trials", JSON.stringify(trials));
+      return newTrial;
+    }
   },
   updateTrial: async (id, updatedTrial) => {
-    const trials = await storage.getTrials();
-    const index = trials.findIndex((trial) => trial.id === id);
-    if (index !== -1) {
-      trials[index] = { ...trials[index], ...updatedTrial };
-      localStorage.setItem("trials", JSON.stringify(trials));
-      return trials[index];
+    try {
+      const { data, error } = await supabase
+        .from("trials")
+        .update({
+          name: updatedTrial.name,
+          description: updatedTrial.description,
+          location: updatedTrial.location,
+          sponsor: updatedTrial.sponsor,
+          phase: updatedTrial.phase,
+          image_url: updatedTrial.image,
+          is_new: updatedTrial.isNew,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating trial in database:", error);
+        // Fallback to localStorage
+        const trials = await storage.getTrials();
+        const index = trials.findIndex((trial) => trial.id === id);
+        if (index !== -1) {
+          trials[index] = { ...trials[index], ...updatedTrial };
+          localStorage.setItem("trials", JSON.stringify(trials));
+          return trials[index];
+        }
+        return null;
+      }
+
+      // Transform the response to match expected structure
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description || "No description available",
+        status: data.status || "planning",
+        location: data.location,
+        sponsor: data.sponsor,
+        phase: data.phase,
+        image: data.image_url,
+        isNew: data.is_new || false,
+        progress: data.progress || 0,
+        upcoming: data.upcoming || "No upcoming tasks",
+        pendingTask: data.pending_task || "No pending tasks",
+        piContact: data.pi_contact || "Prof. Cesare Hassan",
+        studyStart: data.study_start || "01 September 2025",
+        estimatedCloseOut: data.estimated_close_out || "13 December 2025",
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+    } catch (error) {
+      console.error("Error in updateTrial:", error);
+      // Fallback to localStorage
+      const trials = await storage.getTrials();
+      const index = trials.findIndex((trial) => trial.id === id);
+      if (index !== -1) {
+        trials[index] = { ...trials[index], ...updatedTrial };
+        localStorage.setItem("trials", JSON.stringify(trials));
+        return trials[index];
+      }
+      return null;
     }
-    return null;
   },
   deleteTrial: async (id) => {
-    const trials = await storage.getTrials();
-    const filteredTrials = trials.filter((trial) => trial.id !== id);
-    localStorage.setItem("trials", JSON.stringify(filteredTrials));
-    return true;
+    try {
+      const { error } = await supabase.from("trials").delete().eq("id", id);
+
+      if (error) {
+        console.error("Error deleting trial from database:", error);
+        // Fallback to localStorage
+        const trials = await storage.getTrials();
+        const filteredTrials = trials.filter((trial) => trial.id !== id);
+        localStorage.setItem("trials", JSON.stringify(filteredTrials));
+        return true;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in deleteTrial:", error);
+      // Fallback to localStorage
+      const trials = await storage.getTrials();
+      const filteredTrials = trials.filter((trial) => trial.id !== id);
+      localStorage.setItem("trials", JSON.stringify(filteredTrials));
+      return true;
+    }
   },
 
   // Team
