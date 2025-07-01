@@ -90,13 +90,13 @@ export const TrialCard = ({ trial, onClick, getStage }: TrialCardProps) => {
         </div>
         {/* Upcoming */}
         <div className="flex items-center gap-2 bg-[#6C757D] bg-opacity-10 text-[#6C757D] text-xs rounded-md px-3 py-2 mb-2">
-          <Calendar className="h-4 w-4 text-[#6C757D]" />
-          <span className="font-medium">Next:</span> {trial.upcoming}
+          <AlertCircle className="h-4 w-4 text-[#6C757D]" />
+          <span className="font-medium">pi.name del trial</span>
         </div>
         {/* Pending task */}
         <div className="flex items-center gap-2 bg-[#6C757D] bg-opacity-10 text-[#6C757D] text-xs rounded-md px-3 py-2">
           <AlertCircle className="h-4 w-4 text-[#6C757D]" />
-          {trial.pendingTask}
+          ""
         </div>
       </div>
     </div>

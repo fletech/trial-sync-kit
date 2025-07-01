@@ -253,11 +253,11 @@ export const Sidebar = ({ open, onToggle }: SidebarProps) => {
                 icon={<MessageSquare className="h-5 w-5" />}
                 label={open ? "Document Assistant" : ""}
               />
-              <NavItem
+              {/* <NavItem
                 to="/task-manager"
                 icon={<CheckSquare className="h-5 w-5" />}
                 label={open ? "Task Management" : ""}
-              />
+              /> */}
               <NavItem
                 to="/organisation"
                 icon={<Users className="h-5 w-5" />}
